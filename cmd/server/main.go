@@ -38,6 +38,7 @@ func main() {
 
 	api.Post("/blackout-schedule", handlers.PostSchedule(db))
 	api.Get("/generate-api-key", handlers.GenerateAPIKey(db, cfg))
+	api.Get("/update-api-key", handlers.ManageAPIKey(db, cfg))
 
 	log.Printf("Server is running on port %s (app version: %s)",
 		cfg.SERVER_PORT,
