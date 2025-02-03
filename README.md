@@ -150,7 +150,7 @@ Content-Type: application/json
 
 - **On Success:**
   - HTTP Status Code: `200 OK`
-  - Response Body: JSON array of DataSchedule objects.
+  - Response Body: JSON array of [objects](#schedule-json-response-object-fields)
 
 - **On Failure (examples):**
   - If JSON is invalid:
