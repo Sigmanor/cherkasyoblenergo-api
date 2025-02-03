@@ -103,9 +103,9 @@ Request Body JSON Structure:
 
 ```json
 {
-  "option": "all" | "latest_n" | "by_date",
-  "date": "YYYY-MM-DD", // required only when option is "by_date"
-  "limit": <integer> // required only when option is "latest_n", must be > 0
+  "option": "all" // "latest_n" | "by_date",
+  "date": "2022-02-24", // required only when option is "by_date"
+  "limit": 5 // <integer> required only when option is "latest_n", must be > 0
 }
 ```
 
@@ -196,8 +196,8 @@ GET /cherkasyoblenergo/api/generate-api-key?admin_password=<YOUR_ADMIN_PASSWORD>
   - Response Body JSON Structure:
     ```json
     {
-      "api_key": "<generated_api_key_string>",
-      "rate_limit": <integer>
+      "api_key": "ggj7d1slfkm",
+      "rate_limit": 2
     }
     ```
 
