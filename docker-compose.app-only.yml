@@ -1,0 +1,14 @@
+services:
+  app:
+    build: .
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - SERVER_PORT=${SERVER_PORT}
+    network_mode: "host"
