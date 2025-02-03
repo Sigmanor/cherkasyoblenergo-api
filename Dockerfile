@@ -10,5 +10,5 @@ RUN go build -o cherkasyoblenergo_api ./cmd/server/main.go
 FROM alpine:3.16
 WORKDIR /app
 COPY --from=builder /app/cherkasyoblenergo_api .
-COPY app.env /app/app.env
+COPY .env /app/.env
 CMD ["./cherkasyoblenergo_api"]
