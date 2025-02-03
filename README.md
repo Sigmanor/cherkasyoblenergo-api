@@ -50,7 +50,7 @@ git clone https://github.com/Sigmanor/cherkasyoblenergo-api.git
 
 ### Config
 
-Create a **app.env** file in the app root directory:
+Create a **.env** file in the app root directory:
 
 ```properties
 DB_HOST=localhost
@@ -64,7 +64,7 @@ SERVER_PORT=3000
 
 ### Deploy
 
--  `docker-compose --env-file app.env up -d --build` or if you already has postgresql container running `docker-compose -f docker-compose.app-only.yml --env-file app.env up -d --build`
+-  `docker-compose --env-file .env up -d --build` or if you already has postgresql container running `docker-compose -f docker-compose.app-only.yml --env-file .env up -d --build`
 
 ## API Documentation
 
