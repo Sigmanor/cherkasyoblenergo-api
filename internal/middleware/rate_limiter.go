@@ -17,7 +17,8 @@ var limiterCache = sync.Map{}
 
 func RateLimiter(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		if c.Path() == "/cherkasyoblenergo/api/generate-api-key" {
+		if c.Path() == "/cherkasyoblenergo/api/generate-api-key" ||
+			c.Path() == "/cherkasyoblenergo/api/update-api-key" {
 			return c.Next()
 		}
 

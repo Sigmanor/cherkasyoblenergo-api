@@ -9,7 +9,8 @@ import (
 
 func APIKeyAuth(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		if c.Path() == "/cherkasyoblenergo/api/generate-api-key" {
+		if c.Path() == "/cherkasyoblenergo/api/generate-api-key" ||
+			c.Path() == "/cherkasyoblenergo/api/update-api-key" {
 			return c.Next()
 		}
 
@@ -21,14 +22,13 @@ func APIKeyAuth(db *gorm.DB) fiber.Handler {
 		}
 
 		var key models.APIKey
-		if err := db.Where("key = ?", apiKey).First(&key).Error; err != nil {
+		if err := db.Unscoped().Where("key = ? AND deleted_at IS NULL", apiKey).First(&key).Error; err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Invalid API key",
 			})
 		}
 
 		c.Locals("api_key", key)
-
 		return c.Next()
 	}
 }
