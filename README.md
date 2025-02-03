@@ -24,6 +24,11 @@
       - [Query Parameters](#query-parameters)
       - [Example Request](#example-request)
       - [Response](#response-1)
+    - [/update-api-key](#update-api-key)
+      - [Request](#request-2)
+      - [Query Parameters](#query-parameters-1)
+      - [Example Requests](#example-requests)
+      - [Response](#response-2)
 - [Contribution](#contribution)
   - [run](#run)
   - [build](#build)
@@ -211,6 +216,86 @@ GET /cherkasyoblenergo/api/generate-api-key?admin_password=<YOUR_ADMIN_PASSWORD>
   - If there are internal server errors (e.g., failure to create the API key in the database):
     - HTTP Status Code: `500 Internal Server Error`
     - Response JSON: `{ "error": "Failed to create API key" }`
+
+
+#### /update-api-key
+
+Allows an administrator to manage existing API keys
+
+##### Request
+
+```text
+HTTP Method: GET
+URL: /cherkasyoblenergo/api/update-api-key
+```
+
+##### Query Parameters
+
+- **admin_password (required)**: The administrative password to authorize changes.
+- **key (required)**: The existing API key to be managed.
+- **update_key (optional, default: false)**: If set to `true`, generates and assigns a new API key.
+- **delete_key (optional, default: false)**: If set to `true`, deletes the specified API key.
+- **update_rate_limit (optional)**: Updates the rate limit for the specified API key. Should be an integer.
+
+##### Example Requests
+
+**Update API key:**
+```text
+GET /cherkasyoblenergo/api/update-api-key?admin_password=<YOUR_ADMIN_PASSWORD>&key=<EXISTING_KEY>&update_key=true
+```
+
+**Delete API key:**
+```text
+GET /cherkasyoblenergo/api/update-api-key?admin_password=<YOUR_ADMIN_PASSWORD>&key=<EXISTING_KEY>&delete_key=true
+```
+
+**Update rate limit:**
+```text
+GET /cherkasyoblenergo/api/update-api-key?admin_password=<YOUR_ADMIN_PASSWORD>&key=<EXISTING_KEY>&update_rate_limit=10
+```
+
+##### Response
+
+- **On Success:**
+  - HTTP Status Code: `200 OK`
+  - Response Body (for key update):
+    ```json
+    {
+      "message": "API key updated successfully",
+      "new_key": "newly_generated_key"
+    }
+    ```
+  - Response Body (for key deletion):
+    ```json
+    {
+      "message": "API key deleted successfully"
+    }
+    ```
+  - Response Body (for rate limit update):
+    ```json
+    {
+      "message": "Rate limit updated successfully"
+    }
+    ```
+
+- **On Failure:**
+  - If admin_password is incorrect:
+    - HTTP Status Code: `401 Unauthorized`
+    - Response JSON: `{ "error": "Unauthorized" }`
+  - If key is missing:
+    - HTTP Status Code: `400 Bad Request`
+    - Response JSON: `{ "error": "API key is required" }`
+  - If key is not found:
+    - HTTP Status Code: `404 Not Found`
+    - Response JSON: `{ "error": "API key not found" }`
+  - If update_rate_limit is invalid:
+    - HTTP Status Code: `400 Bad Request`
+    - Response JSON: `{ "error": "Invalid rate_limit value" }`
+  - If internal server error occurs:
+    - HTTP Status Code: `500 Internal Server Error`
+    - Response JSON: `{ "error": "Failed to update API key" }`
+
+
 
 ## Contribution
 
