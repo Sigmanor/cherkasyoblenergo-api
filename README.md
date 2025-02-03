@@ -64,7 +64,7 @@ SERVER_PORT=3000
 
 ### Deploy
 
-- `docker-compose -f docker-compose.app-only.yml --env-file app.env up -d --build` or if you already has postgresql container running `docker-compose --env-file app.env up -d --build`
+-  `docker-compose --env-file app.env up -d --build` or if you already has postgresql container running `docker-compose -f docker-compose.app-only.yml --env-file app.env up -d --build`
 
 ## API Documentation
 
