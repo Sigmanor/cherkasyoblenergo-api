@@ -44,7 +44,7 @@ type scheduleNews struct {
 func StartCron(db *gorm.DB) {
 	c := cron.New()
 
-	c.AddFunc("@every 5m", func() {
+	c.AddFunc("@every 10m", func() {
 		fetchAndStoreNews(db)
 	})
 
