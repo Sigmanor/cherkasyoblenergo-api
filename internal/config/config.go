@@ -4,7 +4,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-const version = "1.1.0"
+const version = "1.1.1"
 
 type Config struct {
 	APP_VERSION   string
