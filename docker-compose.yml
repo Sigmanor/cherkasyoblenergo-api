@@ -1,6 +1,7 @@
 services:
   app:
     build: .
+    restart: always
     depends_on:
       db:
         condition: service_healthy
@@ -19,6 +20,7 @@ services:
 
   db:
     image: postgres:17-alpine
+    restart: always
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 5s

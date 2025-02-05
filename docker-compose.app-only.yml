@@ -1,6 +1,7 @@
 services:
   app:
     build: .
+    restart: always
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}"
     environment:
