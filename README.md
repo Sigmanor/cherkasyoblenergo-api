@@ -1,7 +1,7 @@
 # Cherkasyoblenergo API
 
 [![Go Version](https://img.shields.io/github/go-mod/go-version/Sigmanor/cherkasyoblenergo-api)](https://go.dev/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/github/license/Think-Root/chappie_server)](LICENSE)
 
 Unofficial API service for retrieving power outage schedules from cherkasyoblenergo.com. Get real-time and historical power outage information through a RESTful API interface.
 
@@ -30,8 +30,6 @@ Unofficial API service for retrieving power outage schedules from cherkasyoblene
     - [Local Development](#local-development)
   - [🤝 Contributing](#-contributing)
   - [❗ Troubleshooting](#-troubleshooting)
-  - [📝 License](#-license)
-  - [📫 Contact](#-contact)
   - [⚡ Free API Access](#-free-api-access)
 
 ## 🚀 Installation
@@ -116,17 +114,9 @@ go build -o cherkasyoblenergo_api ./cmd/server/main.go
 - **API Key Issues**: Ensure proper API key generation and rate limit configuration
 - **Docker Issues**: Check Docker logs using `docker-compose logs`
 
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 📫 Contact
-
-For API access or questions: sigmanor@pm.me
-
 ## ⚡ Free API Access
 
-Limited free access (2 requests/minute) available for testing. Contact via email for access.
+Limited free access (2 requests/minute) available for testing. Contact via [email](sigmanor@pm.me) for access.
 
 ---
 
