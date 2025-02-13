@@ -31,6 +31,7 @@ Unofficial API service for retrieving power outage schedules from cherkasyoblene
   - [🤝 Contributing](#-contributing)
   - [❗ Troubleshooting](#-troubleshooting)
   - [⚡ Free API Access](#-free-api-access)
+  - [Limited free access (2 requests/minute) available for testing. Contact via email for access.](#limited-free-access-2-requestsminute-available-for-testing-contact-via-email-for-access)
 
 ## 🚀 Installation
 
@@ -116,8 +117,7 @@ go build -o cherkasyoblenergo_api ./cmd/server/main.go
 
 ## ⚡ Free API Access
 
-Limited free access (2 requests/minute) available for testing. Contact via [email](sigmanor@pm.me) for access.
-
+Limited free access (2 requests/minute) available for testing. Contact via [email](mailto:sigmanor@pm.me) for access.
 ---
 
 **Status**: Active maintenance
