@@ -3,7 +3,7 @@
 [![Go Version](https://img.shields.io/github/go-mod/go-version/Sigmanor/cherkasyoblenergo-api)](https://go.dev/)
 [![License](https://img.shields.io/github/license/Think-Root/chappie_server)](LICENSE)
 
-Unofficial API service for retrieving power outage schedules from cherkasyoblenergo.com. Get real-time and historical power outage information through a RESTful API interface.
+Unofficial API service for retrieving power outage schedules from [cherkasyoblenergo.com](https://cherkasyoblenergo.com/). Get real-time and historical power outage information through a RESTful API interface.
 
 ## 📋 Table of Contents
 
