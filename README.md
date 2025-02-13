@@ -5,20 +5,11 @@
 
 Unofficial API service for retrieving power outage schedules from cherkasyoblenergo.com. Get real-time and historical power outage information through a RESTful API interface.
 
-## ✨ Key Features
-
-- Real-time power outage schedule data
-- Historical data access
-- RESTful API interface
-- Rate limiting support
-- API key authentication
-- Docker deployment support
-
 ## 📋 Table of Contents
 
 - [Cherkasyoblenergo API](#cherkasyoblenergo-api)
-  - [✨ Key Features](#-key-features)
   - [📋 Table of Contents](#-table-of-contents)
+  - [✨ Key Features](#-key-features)
   - [🚀 Installation](#-installation)
     - [Prerequisites](#prerequisites)
     - [Setup](#setup)
@@ -31,6 +22,15 @@ Unofficial API service for retrieving power outage schedules from cherkasyoblene
   - [🤝 Contributing](#-contributing)
   - [❗ Troubleshooting](#-troubleshooting)
   - [⚡ Free API Access](#-free-api-access)
+
+## ✨ Key Features
+
+- Real-time power outage schedule data
+- Historical data access
+- RESTful API interface
+- Rate limiting support
+- API key authentication
+- Docker deployment support
 
 ## 🚀 Installation
 
