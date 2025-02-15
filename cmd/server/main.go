@@ -1,13 +1,14 @@
 package main
 
 import (
+	"log"
+
 	"cherkasyoblenergo-api/internal/config"
 	"cherkasyoblenergo-api/internal/database"
 	"cherkasyoblenergo-api/internal/handlers"
 	"cherkasyoblenergo-api/internal/middleware"
 	"cherkasyoblenergo-api/internal/models"
 	"cherkasyoblenergo-api/internal/parser"
-	"log"
 
 	"github.com/gofiber/fiber/v2"
 )
