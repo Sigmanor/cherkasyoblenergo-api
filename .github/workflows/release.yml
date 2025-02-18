@@ -1,6 +1,10 @@
 name: Release
+
 on:
-  push:
+  workflow_run:
+    workflows: ["Deploy cherkasyoblenergo_api"]
+    types:
+      - completed
     branches:
       - main
 
@@ -8,6 +12,7 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     permissions:
       contents: write
       issues: write
