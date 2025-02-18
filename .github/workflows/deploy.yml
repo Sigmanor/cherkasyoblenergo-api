@@ -74,8 +74,8 @@ jobs:
             cd "$REPO_FOLDER"
 
             echo "Setting up .env file..."
-            echo "${{ secrets.ENV_PROD }}" | base64 --decode > .env
-
+            echo "${{ secrets.ENV_PROD }}" > .env
+            
             if docker inspect cherkasyoblenergo-api-app-1 >/dev/null 2>&1; then
               echo "Stopping and removing existing container..."
               docker compose down -v --rmi all
