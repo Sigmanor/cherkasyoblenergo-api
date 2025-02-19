@@ -58,7 +58,12 @@ ADMIN_PASSWORD=your_strong_admin_password
 SERVER_PORT=3000
 ```
 
-3. Deploy:
+3. Create persistent volume for PostgreSQL:
+```bash
+docker volume create postgres_data
+```
+
+4. Deploy:
 ```bash
 docker-compose --env-file .env up -d --build
 ```
