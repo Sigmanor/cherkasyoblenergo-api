@@ -22,7 +22,6 @@ var scheduleKeywords = []string{
 	strings.ToLower("оновлені графіки"),
 	strings.ToLower("графіки погодинних"),
 	strings.ToLower("графіки відключень"),
-	strings.ToLower("відключень"),
 }
 
 type NewsResponse struct {
