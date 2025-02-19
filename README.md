@@ -38,6 +38,7 @@ Unofficial API service for retrieving power outage schedules from [cherkasyoblen
 
 - [Docker](https://docs.docker.com/engine/install/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
+- PostgreSQL 17 (only if running without Docker)
 
 ### Setup
 
@@ -47,7 +48,7 @@ git clone https://github.com/Sigmanor/cherkasyoblenergo-api.git
 cd cherkasyoblenergo-api
 ```
 
-2. Create `.env` file:
+2. Create `.env` file with required configurations:
 ```properties
 DB_HOST=localhost
 DB_PORT=5432
@@ -58,17 +59,18 @@ ADMIN_PASSWORD=your_strong_admin_password
 SERVER_PORT=3000
 ```
 
-3. Create persistent volume for PostgreSQL:
-```bash
-docker volume create postgres_data
-```
+3. Choose deployment method:
 
-4. Deploy:
+**Full Docker deployment (with PostgreSQL):**
 ```bash
+# Create persistent volume for PostgreSQL
+docker volume create postgres_data
+
+# Deploy both app and database
 docker-compose --env-file .env up -d --build
 ```
 
-For existing PostgreSQL installations:
+**App-only deployment (for existing PostgreSQL):**
 ```bash
 docker-compose -f docker-compose.app-only.yml --env-file .env up -d --build
 ```
@@ -92,8 +94,9 @@ docker-compose -f docker-compose.app-only.yml --env-file .env up -d --build
 
 ### Requirements
 
-- Go 1.x
-- PostgreSQL
+- Go 1.23 or higher
+- PostgreSQL 17
+- Docker and Docker Compose (for containerized deployment)
 
 ### Local Development
 
@@ -115,9 +118,15 @@ go build -o cherkasyoblenergo_api ./cmd/server/main.go
 
 ## ❗ Troubleshooting
 
-- **Database Connection Issues**: Verify PostgreSQL credentials and connection settings in `.env`
+- **Database Connection Issues**: 
+  - For Docker deployment: Check if postgres_data volume is created
+  - Verify PostgreSQL credentials and connection settings in `.env`
+  - For full Docker setup, ensure the db service is healthy
 - **API Key Issues**: Ensure proper API key generation and rate limit configuration
-- **Docker Issues**: Check Docker logs using `docker-compose logs`
+- **Docker Issues**: 
+  - Check Docker logs: `docker-compose logs`
+  - Verify Docker network configuration
+  - Ensure all required environment variables are set
 
 ## ⚡ Free API Access
 
