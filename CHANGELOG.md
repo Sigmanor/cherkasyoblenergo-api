@@ -1,3 +1,5 @@
+## [1.2.2](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.2.1...v1.2.2) (2025-02-24)
+
 ## [1.2.1](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.2.0...v1.2.1) (2025-02-24)
 
 
