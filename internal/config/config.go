@@ -4,10 +4,9 @@ import (
 	"github.com/spf13/viper"
 )
 
-var Version = "dev"
+var APP_VERSION = "dev"
 
 type Config struct {
-	APP_VERSION   string
 	DBHost        string `mapstructure:"DB_HOST"`
 	DBPort        string `mapstructure:"DB_PORT"`
 	DBUser        string `mapstructure:"DB_USER"`
@@ -30,6 +29,5 @@ func LoadConfig(path string) (config Config, err error) {
 	}
 
 	err = viper.Unmarshal(&config)
-	config.APP_VERSION = Version
 	return
 }
