@@ -75,6 +75,7 @@ jobs:
 
             echo "Determining version from Git tags..."
             export APP_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "dev")
+            echo "APP_VERSION=$APP_VERSION" >> .env
             echo "APP_VERSION: $APP_VERSION"
 
             echo "Building Docker image with build arg..."
