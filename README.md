@@ -21,6 +21,7 @@ Unofficial API service for retrieving power outage schedules from [cherkasyoblen
     - [Local Development](#local-development)
   - [🤝 Contributing](#-contributing)
   - [❗ Troubleshooting](#-troubleshooting)
+  - [🚦 Running Tests](#-running-tests)
   - [⚡ Free API Access](#-free-api-access)
 
 ## ✨ Key Features
@@ -127,6 +128,13 @@ go build -o cherkasyoblenergo_api ./cmd/server/main.go
   - Check Docker logs: `docker-compose logs`
   - Verify Docker network configuration
   - Ensure all required environment variables are set
+
+## 🚦 Running Tests
+
+To run the tests locally:
+```bash
+go test ./...
+```
 
 ## ⚡ Free API Access
 
