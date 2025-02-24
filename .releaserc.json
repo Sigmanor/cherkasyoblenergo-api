@@ -5,7 +5,12 @@
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
     "@semantic-release/github",
-    "@semantic-release/changelog",
+    [
+      "@semantic-release/changelog",
+      {
+        "from": "9172a679601d42f22c62de5fa8dbdcb19ec77135"
+      }
+    ],
     [
       "@semantic-release/git",
       {
