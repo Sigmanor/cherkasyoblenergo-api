@@ -52,8 +52,9 @@ SERVER_PORT=8080
 	if cfg.SERVER_PORT != "8080" {
 		t.Errorf("expected SERVER_PORT '8080', got '%s'", cfg.SERVER_PORT)
 	}
-	if cfg.APP_VERSION != "1.2.0" {
-		t.Errorf("expected APP_VERSION '1.2.0', got '%s'", cfg.APP_VERSION)
+	expectedVersion := "dev"
+	if cfg.APP_VERSION != expectedVersion {
+		t.Errorf("expected APP_VERSION '%s', got '%s'", expectedVersion, cfg.APP_VERSION)
 	}
 }
 
