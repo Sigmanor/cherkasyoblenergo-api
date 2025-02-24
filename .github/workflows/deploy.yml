@@ -74,11 +74,12 @@ jobs:
             echo "${{ secrets.ENV_PROD }}" > .env
 
             echo "Determining version from Git tags..."
-            export APP_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "dev")
+            APP_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "dev")
+            export APP_VERSION
             echo "APP_VERSION=$APP_VERSION" >> .env
-            echo "APP_VERSION: $APP_VERSION"
+            echo "Building version: $APP_VERSION"
 
-            echo "Building Docker image with build arg..."
+            echo "Building Docker image..."
             docker compose build --build-arg APP_VERSION=$APP_VERSION
             
             if docker inspect cherkasyoblenergo-api-app-1 >/dev/null 2>&1; then
