@@ -16,23 +16,3 @@ jobs:
         run: go mod download
       - name: Run Go tests
         run: go test ./...
-  dispatch_release:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    needs: tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Dispatch release event
-        uses: peter-evans/repository-dispatch@v2
-        with:
-          token: ${{ secrets.GH_TOKEN }}
-          event-type: release
-  dispatch_deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    needs: dispatch_release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Dispatch deploy event
-        uses: peter-evans/repository-dispatch@v2
-        with:
-          token: ${{ secrets.GH_TOKEN }}
-          event-type: deploy
