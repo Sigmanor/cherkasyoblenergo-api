@@ -20,9 +20,9 @@ import (
 )
 
 var scheduleKeywords = []string{
-	strings.ToLower("оновлені графіки"),
-	strings.ToLower("графіки погодинних"),
-	strings.ToLower("графіки відключень"),
+	"оновлені графіки",
+	"графіки погодинних",
+	"графіки відключень",
 }
 
 type NewsResponse struct {
@@ -43,17 +43,12 @@ type scheduleNews struct {
 
 func StartCron(db *gorm.DB) {
 	c := cron.New()
-
-	c.AddFunc("@every 10m", func() {
-		fetchAndStoreNews(db)
-	})
-
+	c.AddFunc("@every 10m", func() { fetchAndStoreNews(db) })
 	c.Start()
 }
 
 func fetchAndStoreNews(db *gorm.DB) {
 	const newsURL = "https://gita.cherkasyoblenergo.com/obl-main-controller/api/news2?size=18&category=1&page=1"
-
 	resp, err := http.Get(newsURL)
 	if err != nil {
 		log.Printf("Failed to fetch data: %v", err)
@@ -68,42 +63,42 @@ func fetchAndStoreNews(db *gorm.DB) {
 	}
 
 	var newsResp NewsResponse
-	if err := json.Unmarshal(body, &newsResp); err != nil {
+	if err = json.Unmarshal(body, &newsResp); err != nil {
 		log.Printf("Failed to unmarshal JSON: %v", err)
 		return
 	}
 
-	var relevantNews []scheduleNews
+	var filteredNews []scheduleNews
 	for _, news := range newsResp.NewsList {
-		if containsScheduleKeywords(news.Title) {
-			parsedDate, err := time.Parse("02.01.2006 15:04", news.Date)
-			if err != nil {
-				continue
-			}
-			relevantNews = append(relevantNews, scheduleNews{
-				ID:       news.ID,
-				Date:     parsedDate,
-				Title:    news.Title,
-				HtmlBody: news.HtmlBody,
-			})
+		if !containsScheduleKeywords(news.Title) {
+			continue
 		}
+		parsedDate, err := time.Parse("02.01.2006 15:04", news.Date)
+		if err != nil {
+			continue
+		}
+		filteredNews = append(filteredNews, scheduleNews{
+			ID:       news.ID,
+			Date:     parsedDate,
+			Title:    news.Title,
+			HtmlBody: news.HtmlBody,
+		})
 	}
 
-	sort.Slice(relevantNews, func(i, j int) bool {
-		return relevantNews[i].Date.Before(relevantNews[j].Date)
+	sort.Slice(filteredNews, func(i, j int) bool {
+		return filteredNews[i].Date.Before(filteredNews[j].Date)
 	})
 
-	for _, news := range relevantNews {
-		var existingData models.Schedule
-		err := db.Session(&gorm.Session{Logger: logger.Default.LogMode(logger.Silent)}).
-			Where("news_id = ?", news.ID).First(&existingData).Error
+	for _, news := range filteredNews {
+		var existing models.Schedule
+		err = db.Session(&gorm.Session{Logger: logger.Default.LogMode(logger.Silent)}).
+			Where("news_id = ?", news.ID).First(&existing).Error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			data := parseScheduleData(news.HtmlBody)
-			data.NewsID = news.ID
-			data.Title = news.Title
-			data.Date = news.Date
-
-			if err := db.Create(&data).Error; err != nil {
+			sch := parseScheduleData(news.HtmlBody)
+			sch.NewsID = news.ID
+			sch.Title = news.Title
+			sch.Date = news.Date
+			if err = db.Create(&sch).Error; err != nil {
 				log.Printf("Failed to save data to DB: %v", err)
 			} else {
 				log.Printf("Successfully saved schedule data from news ID: %d", news.ID)
@@ -115,9 +110,9 @@ func fetchAndStoreNews(db *gorm.DB) {
 }
 
 func containsScheduleKeywords(title string) bool {
-	lowerTitle := strings.ToLower(title)
-	for _, keyword := range scheduleKeywords {
-		if strings.Contains(lowerTitle, keyword) {
+	titleLower := strings.ToLower(title)
+	for _, kw := range scheduleKeywords {
+		if strings.Contains(titleLower, kw) {
 			return true
 		}
 	}
@@ -125,8 +120,7 @@ func containsScheduleKeywords(title string) bool {
 }
 
 func parseScheduleData(htmlBody string) models.Schedule {
-	data := models.Schedule{}
-
+	var data models.Schedule
 	if strings.Contains(strings.ToLower(htmlBody), "скасовано") {
 		for i := 1; i <= 6; i++ {
 			for j := 1; j <= 2; j++ {
@@ -135,33 +129,24 @@ func parseScheduleData(htmlBody string) models.Schedule {
 		}
 		return data
 	}
-
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(htmlBody))
 	if err != nil {
 		return data
 	}
-
 	doc.Find("table tr").Each(func(i int, tr *goquery.Selection) {
 		if tr.Find("th").Length() > 0 {
 			return
 		}
-
-		queueCell := tr.Find("td").First().Text()
-		timeCell := tr.Find("td").Last().Text()
-
-		queueStr := strings.TrimSpace(queueCell)
-		timeStr := strings.TrimSpace(timeCell)
-
+		queueStr := strings.TrimSpace(tr.Find("td").First().Text())
+		timeStr := strings.TrimSpace(tr.Find("td").Last().Text())
 		parts := strings.Split(queueStr, ".")
 		if len(parts) != 2 {
 			return
 		}
-
 		mainQueue, err := strconv.Atoi(strings.TrimSpace(parts[0]))
 		if err != nil {
 			return
 		}
-
 		var subQueue int
 		switch strings.TrimSpace(parts[1]) {
 		case "І", "l", "I":
@@ -171,10 +156,8 @@ func parseScheduleData(htmlBody string) models.Schedule {
 		default:
 			return
 		}
-
 		setQueueValue(&data, mainQueue, subQueue, timeStr)
 	})
-
 	return data
 }
 
