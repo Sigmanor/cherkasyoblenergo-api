@@ -3,7 +3,7 @@ services:
     build:
       context: .
       args:
-        APP_VERSION: ${APP_VERSION}
+        AppVersion: ${AppVersion}
     restart: always
     depends_on:
       db:
