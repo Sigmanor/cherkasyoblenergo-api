@@ -1,8 +1,11 @@
 # Cherkasyoblenergo API
 
+[![Deploy](https://github.com/Sigmanor/cherkasyoblenergo-api/actions/workflows/deploy.yml/badge.svg)](https://github.com/Sigmanor/cherkasyoblenergo-api/actions/workflows/deploy.yml)
 [![Tests](https://github.com/Sigmanor/cherkasyoblenergo-api/actions/workflows/tests.yml/badge.svg)](https://github.com/Sigmanor/cherkasyoblenergo-api/actions/workflows/tests.yml)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/Sigmanor/cherkasyoblenergo-api)](https://go.dev/)
 [![License](https://img.shields.io/github/license/Think-Root/chappie_server)](LICENSE)
+[![Releases](https://img.shields.io/github/release/Sigmanor/cherkasyoblenergo-api.svg)](https://github.com/Sigmanor/cherkasyoblenergo-api/releases)
+[![Changelog](https://img.shields.io/badge/changelog-md-blue)](CHANGELOG.md)
 
 Unofficial API service for retrieving power outage schedules from [cherkasyoblenergo.com](https://cherkasyoblenergo.com/). Get real-time and historical power outage information through a RESTful API interface.
 
