@@ -1,12 +1,3 @@
-## [1.2.1](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.2.0...v1.2.1) (2025-02-24)
-
-
-### Bug Fixes
-
-* change version constant to variable for dynamic versioning ([5ce481b](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/5ce481b17b495b5f207c8ca1a786c685c3fe7df6))
-* remove outdated version entry from CHANGELOG ([ae53e50](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/ae53e50cc2e733ff5d5561bc1dc598f1312eb951))
-* update changelog configuration and clean up CHANGELOG ([c36d231](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/c36d23185fa3f14b307d00f1a1c47c1a98507416))
-
 # [1.2.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.1.0...v1.2.0) (2025-02-15)
 
 
