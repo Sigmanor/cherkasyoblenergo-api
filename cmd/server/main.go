@@ -41,7 +41,7 @@ func main() {
 	api.Get("/generate-api-key", handlers.GenerateAPIKey(db, cfg))
 	api.Get("/update-api-key", handlers.ManageAPIKey(db, cfg))
 
-	log.Printf("Starting server (app version: %s)\n", cfg.APP_VERSION)
+	log.Printf("Starting server (app version: %s)\n", config.APP_VERSION)
 
 	if err := app.Listen(":" + cfg.SERVER_PORT); err != nil {
 		log.Printf("Error starting server: %v", err)
