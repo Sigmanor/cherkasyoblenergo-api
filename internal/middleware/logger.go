@@ -12,17 +12,18 @@ func maskAPIKey(apiKey string) string {
 	if apiKey == "" {
 		return ""
 	}
-	
+
 	if len(apiKey) < 10 {
 		return apiKey
 	}
 
 	prefix := apiKey[:5]
 	suffix := apiKey[len(apiKey)-5:]
-	
+
 	masked := fmt.Sprintf("%s%s%s", prefix, strings.Repeat("*", len(apiKey)-10), suffix)
 	return masked
 }
+
 func Logger() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		start := time.Now()

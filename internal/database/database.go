@@ -1,8 +1,9 @@
 package database
 
 import (
-	"cherkasyoblenergo-api/internal/config"
 	"fmt"
+
+	"cherkasyoblenergo-api/internal/config"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

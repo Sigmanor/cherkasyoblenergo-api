@@ -62,7 +62,7 @@ func ManageAPIKey(db *gorm.DB, cfg config.Config) fiber.Handler {
 				})
 			}
 			return c.JSON(fiber.Map{
-				"message": "Rate limit updated successfully",
+				"message":        "Rate limit updated successfully",
 				"new_rate_limit": rateLimit,
 			})
 		}

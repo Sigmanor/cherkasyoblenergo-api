@@ -22,7 +22,7 @@ ADMIN_PASSWORD=adminpass
 SERVER_PORT=8080
 `)
 	envFile := filepath.Join(tempDir, ".env")
-	if err := os.WriteFile(envFile, envContent, 0644); err != nil {
+	if err := os.WriteFile(envFile, envContent, 0o644); err != nil {
 		t.Fatalf("failed to write .env file: %v", err)
 	}
 

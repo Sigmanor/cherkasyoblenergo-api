@@ -1,9 +1,10 @@
 package handlers
 
 import (
+	"strconv"
+
 	"cherkasyoblenergo-api/internal/config"
 	"cherkasyoblenergo-api/internal/models"
-	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"

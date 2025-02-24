@@ -1,8 +1,9 @@
 package database
 
 import (
-	"cherkasyoblenergo-api/internal/config"
 	"testing"
+
+	"cherkasyoblenergo-api/internal/config"
 )
 
 func TestConnectDB_InvalidConfig(t *testing.T) {

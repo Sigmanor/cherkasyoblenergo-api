@@ -1,11 +1,12 @@
 package middleware
 
 import (
-	"cherkasyoblenergo-api/internal/models"
 	"context"
 	"log"
 	"sync"
 	"time"
+
+	"cherkasyoblenergo-api/internal/models"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/ulule/limiter/v3"

@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"cherkasyoblenergo-api/internal/models"
 	"encoding/json"
 	"errors"
 	"io"
@@ -11,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"cherkasyoblenergo-api/internal/models"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/robfig/cron/v3"
