@@ -1,5 +1,6 @@
 # Cherkasyoblenergo API
 
+[![Tests](https://github.com/Sigmanor/cherkasyoblenergo-api/actions/workflows/tests.yml/badge.svg)](https://github.com/Sigmanor/cherkasyoblenergo-api/actions/workflows/tests.yml)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/Sigmanor/cherkasyoblenergo-api)](https://go.dev/)
 [![License](https://img.shields.io/github/license/Think-Root/chappie_server)](LICENSE)
 
