@@ -7,10 +7,14 @@ import (
 	"gorm.io/gorm"
 )
 
+var authSkipPaths = map[string]struct{}{
+	"/cherkasyoblenergo/api/generate-api-key": {},
+	"/cherkasyoblenergo/api/update-api-key":   {},
+}
+
 func APIKeyAuth(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		if c.Path() == "/cherkasyoblenergo/api/generate-api-key" ||
-			c.Path() == "/cherkasyoblenergo/api/update-api-key" {
+		if _, ok := authSkipPaths[c.Path()]; ok {
 			return c.Next()
 		}
 
