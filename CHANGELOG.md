@@ -5,6 +5,13 @@
 
 * change version constant to variable for dynamic versioning ([5ce481b](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/5ce481b17b495b5f207c8ca1a786c685c3fe7df6))
 
+## [1.2.1](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.2.0...v1.2.1) (2025-02-24)
+
+
+### Bug Fixes
+
+* change version constant to variable for dynamic versioning ([5ce481b](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/5ce481b17b495b5f207c8ca1a786c685c3fe7df6))
+
 # [1.2.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.1.0...v1.2.0) (2025-02-15)
 
 
