@@ -1,3 +1,12 @@
+## [1.2.2](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.2.1...v1.2.2) (2025-02-24)
+
+
+### Bug Fixes
+
+* improve server startup logging and error handling ([9e4fd2c](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/9e4fd2c8be14397f6a82288b89c63a0bdb0bf20f))
+* update APP_VERSION variable path in Dockerfile to correct import path ([0498ef5](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/0498ef5430938dc5ea2f94ebaeda5eee25b44ddb))
+* update version variable to exported format for consistency ([f41cc32](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/f41cc3238aaf1f20ba81e82ae8f20c04ce5b691c))
+
 ## [1.2.1](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.2.0...v1.2.1) (2025-02-24)
 
 
