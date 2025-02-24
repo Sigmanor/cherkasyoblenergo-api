@@ -1,3 +1,13 @@
+## [1.2.1](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.2.0...v1.2.1) (2025-02-24)
+
+
+### Bug Fixes
+
+* change version constant to variable for dynamic versioning ([5ce481b](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/5ce481b17b495b5f207c8ca1a786c685c3fe7df6))
+* remove unused dispatch release and deploy steps from workflow ([5d0777d](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/5d0777d7f89691b733ea8808b899cbea60df7f30))
+* update changelog configuration and clean up CHANGELOG ([24f762c](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/24f762c2e16cf0be936b1c44b7c2a0b286c19305))
+* update changelog configuration and simplify release message format ([ce05065](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/ce05065394366bb6ec513729796658e5c8a959e0))
+
 # [1.2.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.1.0...v1.2.0) (2025-02-15)
 
 
