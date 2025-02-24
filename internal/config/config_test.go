@@ -49,8 +49,8 @@ SERVER_PORT=8080
 	if cfg.AdminPassword != "adminpass" {
 		t.Errorf("expected AdminPassword 'adminpass', got '%s'", cfg.AdminPassword)
 	}
-	if cfg.SERVER_PORT != "8080" {
-		t.Errorf("expected SERVER_PORT '8080', got '%s'", cfg.SERVER_PORT)
+	if cfg.ServerPort != "8080" {
+		t.Errorf("expected SERVER_PORT '8080', got '%s'", cfg.ServerPort)
 	}
 }
 
