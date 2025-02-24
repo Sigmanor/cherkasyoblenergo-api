@@ -2,11 +2,8 @@ name: Release
 
 on:
   workflow_run:
-    workflows: ["Deploy cherkasyoblenergo_api"]
-    types:
-      - completed
-    branches:
-      - main
+    workflows: ["Tests"]
+    types: [completed]
 
 jobs:
   release:
