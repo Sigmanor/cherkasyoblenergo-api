@@ -13,21 +13,18 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func main() {
+func runServer() error {
 	cfg, err := config.LoadConfig(".")
 	if err != nil {
-		log.Println("Failed to load config:", err)
-		return
+		return err
 	}
 
 	db, err := database.ConnectDB(cfg)
 	if err != nil {
-		log.Println("Failed to connect to DB:", err)
-		return
+		return err
 	}
 
 	db.AutoMigrate(&models.Schedule{}, &models.APIKey{})
-
 	parser.StartCron(db)
 
 	app := fiber.New()
@@ -36,15 +33,16 @@ func main() {
 	app.Use(middleware.Logger())
 
 	api := app.Group("/cherkasyoblenergo/api")
-
 	api.Post("/blackout-schedule", handlers.PostSchedule(db))
 	api.Get("/generate-api-key", handlers.GenerateAPIKey(db, cfg))
 	api.Get("/update-api-key", handlers.ManageAPIKey(db, cfg))
 
-	log.Printf("Starting server (app version: %s)\n", config.APP_VERSION)
+	log.Printf("Starting server (app version: %s)\n", config.AppVersion)
+	return app.Listen(":" + cfg.ServerPort)
+}
 
-	if err := app.Listen(":" + cfg.SERVER_PORT); err != nil {
-		log.Printf("Error starting server: %v", err)
-		return
+func main() {
+	if err := runServer(); err != nil {
+		log.Fatalf("Error starting server: %v", err)
 	}
 }
