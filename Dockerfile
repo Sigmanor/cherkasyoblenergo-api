@@ -5,7 +5,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
 ARG APP_VERSION=dev
-RUN go build -ldflags="-X github.com/Sigmanor/cherkasyoblenergo-api/internal/config.Version=${APP_VERSION}" -o cherkasyoblenergo_api ./cmd/server/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-X 'github.com/Sigmanor/cherkasyoblenergo-api/internal/config.Version=${APP_VERSION}'" -o cherkasyoblenergo_api ./cmd/server/main.go
 
 # Runtime
 FROM alpine:3.16
