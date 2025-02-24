@@ -4,8 +4,8 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-ARG APP_VERSION
-RUN go build -ldflags="-X 'cherkasyoblenergo-api/internal/config.APP_VERSION=${APP_VERSION}'" -o cherkasyoblenergo_api ./cmd/server/main.go
+ARG AppVersion
+RUN go build -ldflags="-X 'cherkasyoblenergo-api/internal/config.AppVersion=${AppVersion}'" -o cherkasyoblenergo_api ./cmd/server/main.go
 
 # Runtime
 FROM alpine:3.16
