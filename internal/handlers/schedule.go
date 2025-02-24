@@ -36,55 +36,36 @@ func PostSchedule(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var filter ScheduleFilter
 		if err := c.BodyParser(&filter); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Invalid JSON format",
-			})
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid JSON format"})
 		}
-
 		var schedules []Schedule
 		query := db.Table("schedules")
-
 		switch filter.Option {
 		case "all":
 			if err := query.Find(&schedules).Error; err != nil {
-				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-					"error": "Failed to retrieve records",
-				})
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve records"})
 			}
 		case "latest_n":
 			if filter.Limit <= 0 {
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"error": "Invalid limit value, it must be greater than zero",
-				})
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid limit value, it must be greater than zero"})
 			}
 			if err := query.Order("date desc").Limit(filter.Limit).Find(&schedules).Error; err != nil {
-				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-					"error": "Failed to retrieve latest records",
-				})
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve latest records"})
 			}
 		case "by_date":
 			if filter.Date == "" {
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"error": "Date must be specified in YYYY-MM-DD format",
-				})
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Date must be specified in YYYY-MM-DD format"})
 			}
 			date, err := time.Parse("2006-01-02", filter.Date)
 			if err != nil {
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"error": "Invalid date format, expected YYYY-MM-DD",
-				})
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid date format, expected YYYY-MM-DD"})
 			}
 			if err := query.Where("DATE(date) = ?", date.Format("2006-01-02")).Find(&schedules).Error; err != nil {
-				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-					"error": "Failed to retrieve records by date",
-				})
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve records by date"})
 			}
 		default:
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Invalid option parameter value",
-			})
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid option parameter value"})
 		}
-
 		return c.JSON(schedules)
 	}
 }
