@@ -4,7 +4,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-var version = "dev"
+var Version = "dev"
 
 type Config struct {
 	APP_VERSION   string
@@ -30,6 +30,6 @@ func LoadConfig(path string) (config Config, err error) {
 	}
 
 	err = viper.Unmarshal(&config)
-	config.APP_VERSION = version
+	config.APP_VERSION = Version
 	return
 }
