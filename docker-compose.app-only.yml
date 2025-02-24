@@ -1,6 +1,9 @@
 services:
   app:
-    build: .
+    build:
+      context: .
+      args:
+        AppVersion: ${AppVersion}
     restart: always
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}"
