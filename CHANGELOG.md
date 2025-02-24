@@ -1,3 +1,10 @@
+## [1.2.3](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.2.2...v1.2.3) (2025-02-24)
+
+
+### Bug Fixes
+
+* correct reference to APP_VERSION in server logging ([9d05a37](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/9d05a37e51d0679e4bc04ca26b90f56992982573))
+
 ## [1.2.2](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.2.1...v1.2.2) (2025-02-24)
 
 
