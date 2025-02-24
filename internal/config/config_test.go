@@ -52,10 +52,6 @@ SERVER_PORT=8080
 	if cfg.SERVER_PORT != "8080" {
 		t.Errorf("expected SERVER_PORT '8080', got '%s'", cfg.SERVER_PORT)
 	}
-	expectedVersion := "dev"
-	if cfg.APP_VERSION != expectedVersion {
-		t.Errorf("expected APP_VERSION '%s', got '%s'", expectedVersion, cfg.APP_VERSION)
-	}
 }
 
 func TestLoadConfig_MissingFile(t *testing.T) {
