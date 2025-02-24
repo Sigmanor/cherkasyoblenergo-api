@@ -4,7 +4,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-var APP_VERSION = "dev"
+const AppVersion = "dev"
 
 type Config struct {
 	DBHost        string `mapstructure:"DB_HOST"`
@@ -13,7 +13,7 @@ type Config struct {
 	DBPassword    string `mapstructure:"DB_PASSWORD"`
 	DBName        string `mapstructure:"DB_NAME"`
 	AdminPassword string `mapstructure:"ADMIN_PASSWORD"`
-	SERVER_PORT   string `mapstructure:"SERVER_PORT"`
+	ServerPort    string `mapstructure:"SERVER_PORT"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
