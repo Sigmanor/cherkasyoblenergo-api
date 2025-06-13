@@ -8,7 +8,7 @@
 ## Authentication
 All endpoints require an API key. Include it in your requests as a header:
 ```
-Authorization: Bearer YOUR_API_KEY
+X-API-Key: YOUR_API_KEY
 ```
 
 ## Endpoints
@@ -119,7 +119,7 @@ Manage existing API keys.
 ### Get Latest Schedules
 ```bash
 curl -X POST "https://api.example.com/cherkasyoblenergo/api/blackout-schedule" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "X-API-Key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "option": "latest_n",
