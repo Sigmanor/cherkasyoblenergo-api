@@ -25,4 +25,5 @@ volumes:
 
 networks:
   cherkasyoblenergo-network:
+    name: cherkasyoblenergo-network
     driver: bridge
