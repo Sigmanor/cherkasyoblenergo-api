@@ -6,9 +6,6 @@ services:
       args:
         AppVersion: ${APP_VERSION}
     restart: always
-    depends_on:
-      cherkasyoblenergo-db:
-        condition: service_healthy
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}"
     environment:
