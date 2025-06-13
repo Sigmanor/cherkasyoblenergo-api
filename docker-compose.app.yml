@@ -17,8 +17,8 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       SERVER_PORT: ${SERVER_PORT}
     networks:
-      - app-network
+      - cherkasyoblenergo-network
 
 networks:
-  app-network:
-    external: true
+  cherkasyoblenergo-network:
+    driver: bridge
