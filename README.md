@@ -72,12 +72,12 @@ SERVER_PORT=3000
 docker volume create postgres_data
 
 # Deploy both app and database
-docker-compose --env-file .env up -d --build
+docker compose -f docker-compose.app.yml -f docker-compose.db.yml up -d --build
 ```
 
 **App-only deployment (for existing PostgreSQL):**
 ```bash
-docker-compose -f docker-compose.app-only.yml --env-file .env up -d --build
+docker compose -f docker-compose.app.yml up -d --build
 ```
 
 ## 🔑 API Documentation
