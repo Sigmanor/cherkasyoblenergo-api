@@ -24,7 +24,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
-            set -e  # Exit on any command error
+            set -e
 
             if ! systemctl is-active --quiet docker; then
               echo "Docker is not running. Starting Docker..."
@@ -79,14 +79,15 @@ jobs:
             echo "APP_VERSION=$APP_VERSION" >> .env
             echo "Building version: $APP_VERSION"
 
-            echo "Building Docker image..."
-            docker compose build --build-arg APP_VERSION=$APP_VERSION
-            
-            if docker inspect cherkasyoblenergo-api-app-1 >/dev/null 2>&1; then
-              echo "Stopping and removing existing container..."
-              docker compose down -v --rmi all
-            fi
+            echo "Starting database container..."
+            docker compose -f docker-compose.db.yml up -d --no-recreate
 
-            docker compose up -d
+            echo "Building and starting app container..."
+            docker compose -f docker-compose.app.yml build --build-arg APP_VERSION=$APP_VERSION
+            if docker inspect cherkasyoblenergo-api >/dev/null 2>&1; then
+              echo "Stopping and removing existing app container..."
+              docker compose -f docker-compose.app.yml down -v --rmi all
+            fi
+            docker compose -f docker-compose.app.yml up -d
 
             echo "Deployment complete!"
