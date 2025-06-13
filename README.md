@@ -1,4 +1,8 @@
+<div align="center">
+
 # Cherkasyoblenergo API
+
+[![EN](https://img.shields.io/badge/English-0e7837.svg)](README.md) [![UA](https://img.shields.io/badge/Ukrainian-c9c9c9.svg)](README_UA.md)
 
 [![Deploy](https://github.com/Sigmanor/cherkasyoblenergo-api/actions/workflows/deploy.yml/badge.svg)](https://github.com/Sigmanor/cherkasyoblenergo-api/actions/workflows/deploy.yml)
 [![Tests](https://github.com/Sigmanor/cherkasyoblenergo-api/actions/workflows/tests.yml/badge.svg)](https://github.com/Sigmanor/cherkasyoblenergo-api/actions/workflows/tests.yml)
@@ -8,6 +12,8 @@
 [![Changelog](https://img.shields.io/badge/changelog-md-blue)](CHANGELOG.md)
 
 Unofficial API service for retrieving power outage schedules from [cherkasyoblenergo.com](https://cherkasyoblenergo.com/). Get real-time and historical power outage information through a RESTful API interface.
+
+</div>
 
 ## 📋 Table of Contents
 
@@ -48,12 +54,14 @@ Unofficial API service for retrieving power outage schedules from [cherkasyoblen
 ### Setup
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/Sigmanor/cherkasyoblenergo-api.git
 cd cherkasyoblenergo-api
 ```
 
 2. Create `.env` file with required configurations:
+
 ```properties
 DB_HOST=localhost
 DB_PORT=5432
@@ -67,6 +75,7 @@ SERVER_PORT=3000
 3. Choose deployment method:
 
 **Full Docker deployment (with PostgreSQL):**
+
 ```bash
 # Create persistent volume for PostgreSQL
 docker volume create postgres_data
@@ -76,6 +85,7 @@ docker compose -f docker-compose.app.yml -f docker-compose.db.yml up -d --build
 ```
 
 **App-only deployment (for existing PostgreSQL):**
+
 ```bash
 docker compose -f docker-compose.app.yml up -d --build
 ```
@@ -83,6 +93,7 @@ docker compose -f docker-compose.app.yml up -d --build
 ## 🔑 API Documentation
 
 ### Base URL
+
 ```
 /cherkasyoblenergo/api
 ```
@@ -123,12 +134,12 @@ go build -o cherkasyoblenergo_api ./cmd/server/main.go
 
 ## ❗ Troubleshooting
 
-- **Database Connection Issues**: 
+- **Database Connection Issues**:
   - For Docker deployment: Check if postgres_data volume is created
   - Verify PostgreSQL credentials and connection settings in `.env`
   - For full Docker setup, ensure the db service is healthy
 - **API Key Issues**: Ensure proper API key generation and rate limit configuration
-- **Docker Issues**: 
+- **Docker Issues**:
   - Check Docker logs: `docker-compose logs`
   - Verify Docker network configuration
   - Ensure all required environment variables are set
@@ -136,6 +147,7 @@ go build -o cherkasyoblenergo_api ./cmd/server/main.go
 ## 🚦 Running Tests
 
 To run the tests locally:
+
 ```bash
 go test ./...
 ```
