@@ -5,17 +5,20 @@ services:
       context: .
       args:
         AppVersion: ${APP_VERSION}
+    image: cherkasyoblenergo-api:${APP_VERSION}
     restart: always
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}"
     environment:
-      DB_HOST: ${DB_HOST}
+      DB_HOST: cherkasyoblenergo-db
       DB_PORT: ${DB_PORT}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       SERVER_PORT: ${SERVER_PORT}
+    depends_on:
+      - cherkasyoblenergo-db
     networks:
       - cherkasyoblenergo-network
 
