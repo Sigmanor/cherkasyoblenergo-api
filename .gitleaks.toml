@@ -1,0 +1,41 @@
+# Gitleaks configuration file
+# https://github.com/gitleaks/gitleaks
+
+title = "Gitleaks Configuration"
+
+# Global allowlist for files that should be excluded from scanning
+[allowlist]
+description = "Global allowlist"
+files = [
+    # Test files with mock/example API keys
+    '''internal/middleware/logger_test\.go''',
+    
+    # Documentation files with example API usage
+    '''API\.md''',
+    '''API_UA\.md''',
+]
+
+# Additional allowlist for specific patterns
+paths = [
+    # Exclude all test files that might contain mock data
+    '''.*_test\.go''',
+    
+    # Exclude documentation files
+    '''.*\.md''',
+]
+
+# You can also allowlist specific commits if needed
+# commits = ["commit-hash-here"]
+
+# Allowlist for specific rules
+[[rules]]
+description = "Ignore test API keys in test files"
+id = "generic-api-key"
+regex = '''(?i)1234567890ABCDEF'''
+path = '''internal/middleware/logger_test\.go'''
+
+[[rules]]
+description = "Ignore documentation examples with YOUR_API_KEY placeholder"
+id = "curl-auth-header"
+regex = '''X-API-Key:\s*YOUR_API_KEY'''
+path = '''API.*\.md'''
