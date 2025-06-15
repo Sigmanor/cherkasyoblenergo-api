@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"cherkasyoblenergo-api/internal/config"
@@ -21,10 +22,14 @@ func runServer() error {
 
 	db, err := database.ConnectDB(cfg)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to initialize database, got error %w", err)
 	}
 
-	db.AutoMigrate(&models.Schedule{}, &models.APIKey{})
+	log.Println("Running database migrations...")
+	if err := db.AutoMigrate(&models.Schedule{}, &models.APIKey{}); err != nil {
+		return fmt.Errorf("failed to run database migrations: %w", err)
+	}
+	log.Println("Database migrations completed successfully")
 	parser.StartCron(db)
 
 	app := fiber.New()
