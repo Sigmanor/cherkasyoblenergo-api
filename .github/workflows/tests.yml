@@ -1,13 +1,12 @@
 name: Tests
 
 on:
-  workflow_run:
-    workflows: ["Gitleaks"]
-    types: [completed]
+  push:
+    branches:
+      - main
 
 jobs:
   tests:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
