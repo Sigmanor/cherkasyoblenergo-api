@@ -1,6 +1,6 @@
 services:
-  cherkasyoblenergo-db:
-    container_name: cherkasyoblenergo-db
+  postgresql-db:
+    container_name: postgresql-db
     image: postgres:17-alpine
     restart: always
     healthcheck:
