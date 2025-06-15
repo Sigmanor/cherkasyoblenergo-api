@@ -10,7 +10,7 @@ services:
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}"
     environment:
-      DB_HOST: cherkasyoblenergo-db
+      DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
@@ -19,6 +19,7 @@ services:
       SERVER_PORT: ${SERVER_PORT}
     networks:
       - cherkasyoblenergo-network
+      - think-root-network
 
 networks:
   cherkasyoblenergo-network:
