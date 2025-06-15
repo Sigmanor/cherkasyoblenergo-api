@@ -25,3 +25,6 @@ networks:
   cherkasyoblenergo-network:
     name: cherkasyoblenergo-network
     driver: bridge
+  think-root-network:
+    external: true
+    name: think-root-network
