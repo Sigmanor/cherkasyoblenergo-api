@@ -1,3 +1,15 @@
+# [1.3.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.2.3...v1.3.0) (2025-06-15)
+
+
+### Bug Fixes
+
+* **db:** improve database initialization and migration error handling ([83663b2](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/83663b2f4d72ad0933ea36be3fa42e78e06dad2f))
+
+
+### Features
+
+* **db:** ensure database exists before connecting ([cef4769](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/cef47692c4975b924adde559f5c6a875c9f82dea))
+
 ## [1.2.3](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.2.2...v1.2.3) (2025-02-24)
 
 
