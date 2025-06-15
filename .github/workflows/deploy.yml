@@ -1,14 +1,12 @@
 name: Deploy
 
 on:
-  workflow_run:
-    workflows: ["Release"]
-    types: [completed]
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.ref == 'refs/heads/main' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -79,15 +77,28 @@ jobs:
             echo "APP_VERSION=$APP_VERSION" >> .env
             echo "Building version: $APP_VERSION"
 
-            echo "Starting database container..."
-            docker compose -f docker-compose.db.yml up -d --no-recreate
-
-            echo "Building and starting app container..."
-            docker compose -f docker-compose.app.yml build --build-arg APP_VERSION=$APP_VERSION
-            if docker inspect cherkasyoblenergo-api >/dev/null 2>&1; then
-              echo "Stopping and removing existing app container..."
-              docker compose -f docker-compose.app.yml down -v --rmi all
+            # Check database container status
+            echo "Checking database container status..."
+            if docker inspect postgresql-db >/dev/null 2>&1; then
+              if docker inspect -f '{{.State.Running}}' postgresql-db | grep -q true; then
+                echo "Database container is already running, skipping..."
+              else
+                echo "Database container exists but not running, starting it..."
+                docker compose -f docker-compose.db.yml start
+              fi
+            else
+              echo "Database container doesn't exist, creating and starting..."
+              docker compose -f docker-compose.db.yml up -d --no-recreate
             fi
-            docker compose -f docker-compose.app.yml up -d
+
+            # Always rebuild and restart application container
+            echo "Stopping and removing existing application container..."
+            if docker inspect cherkasyoblenergo-api >/dev/null 2>&1; then
+              docker compose -f docker-compose.app.yml down --rmi all
+            fi
+
+            echo "Building and starting application..."
+            docker compose -f docker-compose.app.yml build --build-arg APP_VERSION=$APP_VERSION
+            docker compose -f docker-compose.app.yml up -d --no-deps --build
 
             echo "Deployment complete!"
