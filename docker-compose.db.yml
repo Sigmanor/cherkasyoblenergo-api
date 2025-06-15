@@ -9,19 +9,19 @@ services:
       timeout: 5s
       retries: 5
     ports:
-      - "${DB_PORT}:5432"
+      - "${DB_EXTERNAL_PORT:-5432}:5432"
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgresql_data:/var/lib/postgresql/data
     networks:
       - cherkasyoblenergo-network
 
 volumes:
-  postgres_data:
-    external: true
+  postgresql_data:
+    name: postgresql_data
 
 networks:
   cherkasyoblenergo-network:
