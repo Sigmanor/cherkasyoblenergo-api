@@ -2,3 +2,4 @@ app.env
 .air.toml
 tmp
 .env
+.env.prod
