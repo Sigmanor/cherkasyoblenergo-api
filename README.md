@@ -78,7 +78,7 @@ SERVER_PORT=3000
 
 ```bash
 # Create persistent volume for PostgreSQL
-docker volume create postgres_data
+docker volume create postgresql_data
 
 # Deploy both app and database
 docker compose -f docker-compose.app.yml -f docker-compose.db.yml up -d --build
