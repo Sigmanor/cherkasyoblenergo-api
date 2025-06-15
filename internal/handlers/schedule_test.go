@@ -39,7 +39,7 @@ func TestPostSchedule_AllOption(t *testing.T) {
 	app := fiber.New()
 	app.Post("/schedules", handler)
 
-	body, _ := json.Marshal(map[string]interface{}{
+	body, _ := json.Marshal(map[string]any{
 		"option": "all",
 	})
 	req := httptest.NewRequest("POST", "/schedules", bytes.NewBuffer(body))

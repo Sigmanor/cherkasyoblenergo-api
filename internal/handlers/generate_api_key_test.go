@@ -46,7 +46,7 @@ func TestGenerateAPIKey_Success(t *testing.T) {
 		t.Errorf("Expected status %d, got %d", fiber.StatusOK, resp.StatusCode)
 	}
 
-	var result map[string]interface{}
+	var result map[string]any
 	json.NewDecoder(resp.Body).Decode(&result)
 	if rateLimit, ok := result["rate_limit"]; ok {
 		if int(rateLimit.(float64)) != 3 {

@@ -62,7 +62,7 @@ func TestManageAPIKey_UpdateRateLimit(t *testing.T) {
 		t.Errorf("Expected status %d, got %d", fiber.StatusOK, resp.StatusCode)
 	}
 
-	var result map[string]interface{}
+	var result map[string]any
 	json.NewDecoder(resp.Body).Decode(&result)
 	if newRate, ok := result["new_rate_limit"]; ok {
 		if strconv.Itoa(5) != newRate.(string) {
