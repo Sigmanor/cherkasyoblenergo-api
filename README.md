@@ -154,4 +154,4 @@ go test ./...
 
 ## ⚡ Free API Access
 
-Limited free access (2 requests/minute) available for testing. Contact via [email](mailto:sigmanor@pm.me) for access.
+Since I host the app for my own needs, I can provide you with limited access (2 req/min) to the API for free. Contact via [email](mailto:dock-brunt-rarity@duck.com) for access.
