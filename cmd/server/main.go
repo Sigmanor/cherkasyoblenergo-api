@@ -12,6 +12,7 @@ import (
 	"cherkasyoblenergo-api/internal/parser"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 )
 
 func runServer() error {
@@ -47,6 +48,10 @@ func runServer() error {
 }
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found")
+	}
+
 	if err := runServer(); err != nil {
 		log.Fatalf("Error starting server: %v", err)
 	}
