@@ -20,7 +20,7 @@ func createDSN(cfg config.Config, dbName string) string {
 }
 
 func ensureDatabaseExists(cfg config.Config) error {
-	dsn := createDSN(cfg, "postgres")
+	dsn := createDSN(cfg, "template1")
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		return fmt.Errorf("failed to connect to postgres server: %w", err)
