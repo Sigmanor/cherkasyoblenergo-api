@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"cherkasyoblenergo-api/internal/config"
 	"cherkasyoblenergo-api/internal/database"
@@ -31,7 +32,13 @@ func runServer() error {
 		return fmt.Errorf("failed to run database migrations: %w", err)
 	}
 	log.Println("Database migrations completed successfully")
-	parser.StartCron(db)
+
+	newsURL := os.Getenv("NEWS_URL")
+	if newsURL == "" {
+		return fmt.Errorf("NEWS_URL environment variable is required")
+	}
+
+	parser.StartCron(db, newsURL)
 
 	app := fiber.New()
 	app.Use(middleware.APIKeyAuth(db))
@@ -42,6 +49,12 @@ func runServer() error {
 	api.Post("/blackout-schedule", handlers.PostSchedule(db))
 	api.Get("/generate-api-key", handlers.GenerateAPIKey(db, cfg))
 	api.Get("/update-api-key", handlers.ManageAPIKey(db, cfg))
+
+	app.Hooks().OnListen(func(data fiber.ListenData) error {
+		log.Println("Server started, running initial news parsing")
+		go parser.FetchAndStoreNews(db, newsURL)
+		return nil
+	})
 
 	log.Printf("Starting server (app version: %s)\n", config.AppVersion)
 	return app.Listen(":" + cfg.ServerPort)
