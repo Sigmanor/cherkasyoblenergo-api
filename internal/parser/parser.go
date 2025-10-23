@@ -43,8 +43,7 @@ type scheduleNews struct {
 	HtmlBody string
 }
 
-func StartCron(db *gorm.DB) {
-	newsURL := os.Getenv("NEWS_URL")
+func StartCron(db *gorm.DB, newsURL string) {
 	if newsURL == "" {
 		log.Fatal("NEWS_URL environment variable is required")
 	}
@@ -59,11 +58,12 @@ func StartCron(db *gorm.DB) {
 	cronSchedule := "@every " + strconv.Itoa(interval) + "m"
 
 	c := cron.New()
-	c.AddFunc(cronSchedule, func() { fetchAndStoreNews(db, newsURL) })
+	c.AddFunc(cronSchedule, func() { FetchAndStoreNews(db, newsURL) })
+
 	c.Start()
 }
 
-func fetchAndStoreNews(db *gorm.DB, newsURL string) {
+func FetchAndStoreNews(db *gorm.DB, newsURL string) {
 	log.Println("Starting news parsing")
 	resp, err := http.Get(newsURL)
 	if err != nil {
