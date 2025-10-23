@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -42,13 +43,27 @@ type scheduleNews struct {
 }
 
 func StartCron(db *gorm.DB) {
+	newsURL := os.Getenv("NEWS_URL")
+	if newsURL == "" {
+		log.Fatal("NEWS_URL environment variable is required")
+	}
+
+	intervalStr := os.Getenv("PARSING_INTERVAL_MINUTES")
+	interval := 10
+	if intervalStr != "" {
+		if parsed, err := strconv.Atoi(intervalStr); err == nil && parsed > 0 {
+			interval = parsed
+		}
+	}
+	cronSchedule := "@every " + strconv.Itoa(interval) + "m"
+
 	c := cron.New()
-	c.AddFunc("@every 10m", func() { fetchAndStoreNews(db) })
+	c.AddFunc(cronSchedule, func() { fetchAndStoreNews(db, newsURL) })
 	c.Start()
 }
 
-func fetchAndStoreNews(db *gorm.DB) {
-	const newsURL = "https://gita.cherkasyoblenergo.com/obl-main-controller/api/news2?size=18&category=1&page=1"
+func fetchAndStoreNews(db *gorm.DB, newsURL string) {
+	log.Println("Starting news parsing")
 	resp, err := http.Get(newsURL)
 	if err != nil {
 		log.Printf("Failed to fetch data: %v", err)
@@ -67,6 +82,7 @@ func fetchAndStoreNews(db *gorm.DB) {
 		log.Printf("Failed to unmarshal JSON: %v", err)
 		return
 	}
+	log.Printf("Fetched %d news items", len(newsResp.NewsList))
 
 	var filteredNews []scheduleNews
 	for _, news := range newsResp.NewsList {
@@ -88,7 +104,9 @@ func fetchAndStoreNews(db *gorm.DB) {
 	sort.Slice(filteredNews, func(i, j int) bool {
 		return filteredNews[i].Date.Before(filteredNews[j].Date)
 	})
+	log.Printf("Filtered to %d relevant news items", len(filteredNews))
 
+	savedCount := 0
 	for _, news := range filteredNews {
 		var existing models.Schedule
 		err = db.Session(&gorm.Session{Logger: logger.Default.LogMode(logger.Silent)}).
@@ -102,11 +120,13 @@ func fetchAndStoreNews(db *gorm.DB) {
 				log.Printf("Failed to save data to DB: %v", err)
 			} else {
 				log.Printf("Successfully saved schedule data from news ID: %d", news.ID)
+				savedCount++
 			}
 		} else if err != nil {
 			log.Printf("Database error when checking news ID %d: %v", news.ID, err)
 		}
 	}
+	log.Printf("Saved %d new schedule data items", savedCount)
 }
 
 func containsScheduleKeywords(title string) bool {
