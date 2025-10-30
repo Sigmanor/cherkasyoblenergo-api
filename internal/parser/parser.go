@@ -156,11 +156,15 @@ func parseScheduleFromParagraphs(htmlBody string) (models.Schedule, bool) {
 
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(htmlBody))
 	if err != nil {
+		log.Printf("Failed to parse HTML in parseScheduleFromParagraphs: %v", err)
 		return data, false
 	}
 
+	paragraphCount := 0
 	doc.Find("p").Each(func(i int, s *goquery.Selection) {
 		text := strings.TrimSpace(s.Text())
+		paragraphCount++
+
 		if text == "" {
 			return
 		}
@@ -175,13 +179,16 @@ func parseScheduleFromParagraphs(htmlBody string) (models.Schedule, bool) {
 		timeRanges := strings.TrimSpace(matches[3])
 
 		if err1 != nil || err2 != nil || mainQueue < 1 || mainQueue > 6 || subQueue < 1 || subQueue > 2 {
+			log.Printf("Invalid queue values: mainQueue=%d, subQueue=%d", mainQueue, subQueue)
 			return
 		}
 
+		log.Printf("Found schedule: %d.%d = %s", mainQueue, subQueue, timeRanges)
 		setQueueValue(&data, mainQueue, subQueue, timeRanges)
 		found = true
 	})
 
+	log.Printf("parseScheduleFromParagraphs: checked %d paragraphs, found=%v", paragraphCount, found)
 	return data, found
 }
 
