@@ -30,7 +30,6 @@ func TestParseScheduleDataCanceled(t *testing.T) {
 	}
 }
 
-// TestParseScheduleDataTable checks the old format (for backward compatibility)
 func TestParseScheduleDataTable(t *testing.T) {
 	htmlBody := `
 		<table>
