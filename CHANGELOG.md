@@ -1,3 +1,18 @@
+# [1.4.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.3.0...v1.4.0) (2025-10-23)
+
+
+### Bug Fixes
+
+* **db:** use template1 for database existence check ([1eae26f](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/1eae26fc943461250408125ab77e85b7a4251687))
+
+
+### Features
+
+* **parser:** enhance schedule detection with regex patterns ([7c94a13](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/7c94a136e5dc61052b28d57869b1668bc4a1cf5f))
+* **parser:** require NEWS_URL for news parsing initialization ([02e2705](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/02e2705443ea92364f196c127aacd822c4fd52b8))
+* **parser:** update news fetching logic with environment variables ([ddfc23a](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/ddfc23a6e050ea1c8b2e09b99a142b230b97400f))
+* **server:** load environment variables from .env file ([cea3140](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/cea31404a7b4232d1f532489d61f37f47097d3c5))
+
 # [1.3.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.2.3...v1.3.0) (2025-06-15)
 
 
