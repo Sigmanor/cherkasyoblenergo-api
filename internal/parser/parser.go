@@ -87,10 +87,9 @@ func FetchAndStoreNews(db *gorm.DB, newsURL string) {
 
 	var filteredNews []scheduleNews
 	for _, news := range newsResp.NewsList {
-		// Check if title contains schedule keywords OR if content contains schedule patterns
 		hasScheduleKeywords := containsScheduleKeywords(news.Title)
 		hasSchedulePatterns := containsSchedulePatterns(news.HtmlBody)
-		
+
 		if !hasScheduleKeywords && !hasSchedulePatterns {
 			continue
 		}
@@ -145,8 +144,6 @@ func containsScheduleKeywords(title string) bool {
 }
 
 func containsSchedulePatterns(htmlBody string) bool {
-	// Check if the HTML body contains schedule patterns like "1.1 <time>" or "2.2 <time>"
-	// This regex looks for patterns like "1.1 10:00" or "6.2 15:00-17:00"
 	re := regexp.MustCompile(`\b[1-6]\.[1-2]\s+\d{1,2}:\d{2}`)
 	return re.MatchString(htmlBody)
 }
@@ -154,42 +151,82 @@ func containsSchedulePatterns(htmlBody string) bool {
 func parseScheduleFromParagraphs(htmlBody string) (models.Schedule, bool) {
 	var data models.Schedule
 	found := false
-	
+
 	re := regexp.MustCompile(`^(\d)\.(\d)\s+(.+)`)
-	
+
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(htmlBody))
 	if err != nil {
 		return data, false
 	}
-	
+
 	doc.Find("p").Each(func(i int, s *goquery.Selection) {
 		text := strings.TrimSpace(s.Text())
 		if text == "" {
 			return
 		}
-		
+
 		matches := re.FindStringSubmatch(text)
 		if matches == nil {
 			return
 		}
-		
+
 		mainQueue, err1 := strconv.Atoi(matches[1])
 		subQueue, err2 := strconv.Atoi(matches[2])
 		timeRanges := strings.TrimSpace(matches[3])
-		
+
 		if err1 != nil || err2 != nil || mainQueue < 1 || mainQueue > 6 || subQueue < 1 || subQueue > 2 {
 			return
 		}
-		
+
 		setQueueValue(&data, mainQueue, subQueue, timeRanges)
 		found = true
 	})
-	
+
 	return data, found
 }
 
 func parseScheduleData(htmlBody string) models.Schedule {
 	var data models.Schedule
+
+	if parsedData, found := parseScheduleFromParagraphs(htmlBody); found {
+		return parsedData
+	}
+
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(htmlBody))
+	if err == nil {
+		foundTableData := false
+		doc.Find("table tr").Each(func(i int, tr *goquery.Selection) {
+			if tr.Find("th").Length() > 0 {
+				return
+			}
+			queueStr := strings.TrimSpace(tr.Find("td").First().Text())
+			timeStr := strings.TrimSpace(tr.Find("td").Last().Text())
+			parts := strings.Split(queueStr, ".")
+			if len(parts) != 2 {
+				return
+			}
+			mainQueue, err := strconv.Atoi(strings.TrimSpace(parts[0]))
+			if err != nil {
+				return
+			}
+			var subQueue int
+			switch strings.TrimSpace(parts[1]) {
+			case "І", "l", "I":
+				subQueue = 1
+			case "ІІ", "ll", "II":
+				subQueue = 2
+			default:
+				return
+			}
+			setQueueValue(&data, mainQueue, subQueue, timeStr)
+			foundTableData = true
+		})
+
+		if foundTableData {
+			return data
+		}
+	}
+
 	if strings.Contains(strings.ToLower(htmlBody), "скасовано") {
 		for i := 1; i <= 6; i++ {
 			for j := 1; j <= 2; j++ {
@@ -198,40 +235,7 @@ func parseScheduleData(htmlBody string) models.Schedule {
 		}
 		return data
 	}
-	
-	if parsedData, found := parseScheduleFromParagraphs(htmlBody); found {
-		return parsedData
-	}
-	
-	doc, err := goquery.NewDocumentFromReader(strings.NewReader(htmlBody))
-	if err != nil {
-		return data
-	}
-	doc.Find("table tr").Each(func(i int, tr *goquery.Selection) {
-		if tr.Find("th").Length() > 0 {
-			return
-		}
-		queueStr := strings.TrimSpace(tr.Find("td").First().Text())
-		timeStr := strings.TrimSpace(tr.Find("td").Last().Text())
-		parts := strings.Split(queueStr, ".")
-		if len(parts) != 2 {
-			return
-		}
-		mainQueue, err := strconv.Atoi(strings.TrimSpace(parts[0]))
-		if err != nil {
-			return
-		}
-		var subQueue int
-		switch strings.TrimSpace(parts[1]) {
-		case "І", "l", "I":
-			subQueue = 1
-		case "ІІ", "ll", "II":
-			subQueue = 2
-		default:
-			return
-		}
-		setQueueValue(&data, mainQueue, subQueue, timeStr)
-	})
+
 	return data
 }
 
