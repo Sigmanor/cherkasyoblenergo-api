@@ -1,3 +1,15 @@
+# [1.5.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.4.0...v1.5.0) (2025-10-30)
+
+
+### Bug Fixes
+
+* **parser:** add logging to schedule parsing logic ([b0df7b5](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/b0df7b5de11277aef1441eeeeb78b6d5696bb238))
+
+
+### Features
+
+* **parser:** enhance schedule parsing with table format support ([5ccd4ab](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/5ccd4abe7a11497ed91ffa41501beae707f20b07))
+
 # [1.4.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.3.0...v1.4.0) (2025-10-23)
 
 
