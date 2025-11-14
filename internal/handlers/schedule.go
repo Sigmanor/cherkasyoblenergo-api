@@ -1,35 +1,129 @@
 package handlers
 
 import (
+	"fmt"
+	"regexp"
+	"strings"
 	"time"
+
+	"cherkasyoblenergo-api/internal/utils"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
 type Schedule struct {
-	ID       int64     `json:"id"`
-	NewsID   int       `json:"news_id"`
-	Title    string    `json:"title"`
-	Date     time.Time `json:"date"`
-	OneOne   string    `gorm:"column:1_1" json:"1_1"`
-	OneTwo   string    `gorm:"column:1_2" json:"1_2"`
-	TwoOne   string    `gorm:"column:2_1" json:"2_1"`
-	TwoTwo   string    `gorm:"column:2_2" json:"2_2"`
-	ThreeOne string    `gorm:"column:3_1" json:"3_1"`
-	ThreeTwo string    `gorm:"column:3_2" json:"3_2"`
-	FourOne  string    `gorm:"column:4_1" json:"4_1"`
-	FourTwo  string    `gorm:"column:4_2" json:"4_2"`
-	FiveOne  string    `gorm:"column:5_1" json:"5_1"`
-	FiveTwo  string    `gorm:"column:5_2" json:"5_2"`
-	SixOne   string    `gorm:"column:6_1" json:"6_1"`
-	SixTwo   string    `gorm:"column:6_2" json:"6_2"`
+	ID           int64     `json:"id"`
+	NewsID       int       `json:"news_id"`
+	Title        string    `json:"title"`
+	Date         time.Time `json:"date"`
+	ScheduleDate string    `json:"schedule_date"`
+	OneOne       string    `gorm:"column:1_1" json:"1_1"`
+	OneTwo       string    `gorm:"column:1_2" json:"1_2"`
+	TwoOne       string    `gorm:"column:2_1" json:"2_1"`
+	TwoTwo       string    `gorm:"column:2_2" json:"2_2"`
+	ThreeOne     string    `gorm:"column:3_1" json:"3_1"`
+	ThreeTwo     string    `gorm:"column:3_2" json:"3_2"`
+	FourOne      string    `gorm:"column:4_1" json:"4_1"`
+	FourTwo      string    `gorm:"column:4_2" json:"4_2"`
+	FiveOne      string    `gorm:"column:5_1" json:"5_1"`
+	FiveTwo      string    `gorm:"column:5_2" json:"5_2"`
+	SixOne       string    `gorm:"column:6_1" json:"6_1"`
+	SixTwo       string    `gorm:"column:6_2" json:"6_2"`
 }
 
 type ScheduleFilter struct {
 	Option string `json:"option"`
 	Date   string `json:"date"`
 	Limit  int    `json:"limit"`
+	Queue  string `json:"queue"`
+}
+
+func parseAndValidateQueues(queueStr string) ([]string, error) {
+	// Return empty slice if queueStr is empty or whitespace-only
+	if strings.TrimSpace(queueStr) == "" {
+		return []string{}, nil
+	}
+
+	// Split by commas
+	tokens := strings.Split(queueStr, ",")
+	
+	// Regex pattern for validation
+	queuePattern := regexp.MustCompile(`^[1-6]_[1-2]$`)
+	
+	// Track seen queues for deduplication
+	seen := make(map[string]bool)
+	result := []string{}
+	
+	for _, token := range tokens {
+		// Trim whitespace
+		queue := strings.TrimSpace(token)
+		
+		// Validate against regex
+		if !queuePattern.MatchString(queue) {
+			return nil, fmt.Errorf("Invalid queue value: '%s'. Each queue must match format X_Y where X is 1-6 and Y is 1-2", queue)
+		}
+		
+		// Deduplicate while preserving order
+		if !seen[queue] {
+			seen[queue] = true
+			result = append(result, queue)
+		}
+	}
+	
+	return result, nil
+}
+
+func getQueueValue(schedule *Schedule, queueName string) string {
+	switch queueName {
+	case "1_1":
+		return schedule.OneOne
+	case "1_2":
+		return schedule.OneTwo
+	case "2_1":
+		return schedule.TwoOne
+	case "2_2":
+		return schedule.TwoTwo
+	case "3_1":
+		return schedule.ThreeOne
+	case "3_2":
+		return schedule.ThreeTwo
+	case "4_1":
+		return schedule.FourOne
+	case "4_2":
+		return schedule.FourTwo
+	case "5_1":
+		return schedule.FiveOne
+	case "5_2":
+		return schedule.FiveTwo
+	case "6_1":
+		return schedule.SixOne
+	case "6_2":
+		return schedule.SixTwo
+	default:
+		return ""
+	}
+}
+
+func buildFilteredResponse(schedules []Schedule, queueNames []string) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(schedules))
+	for i, schedule := range schedules {
+		resultMap := map[string]interface{}{
+			"id":            schedule.ID,
+			"news_id":       schedule.NewsID,
+			"title":         schedule.Title,
+			"date":          schedule.Date,
+			"schedule_date": schedule.ScheduleDate,
+		}
+		
+		// Add each queue value to the result map
+		for _, queueName := range queueNames {
+			resultMap[queueName] = getQueueValue(&schedule, queueName)
+		}
+		
+		result[i] = resultMap
+	}
+	return result
 }
 
 func PostSchedule(db *gorm.DB) fiber.Handler {
@@ -66,6 +160,23 @@ func PostSchedule(db *gorm.DB) fiber.Handler {
 		default:
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid option parameter value"})
 		}
-		return c.JSON(schedules)
+
+		for i := range schedules {
+			schedules[i].ScheduleDate = utils.ExtractScheduleDateFromTitle(schedules[i].Title)
+		}
+
+		// Parse and validate queues
+		validatedQueues, err := parseAndValidateQueues(filter.Queue)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		}
+		
+		// If no queues specified, return full schedules
+		if len(validatedQueues) == 0 {
+			return c.JSON(schedules)
+		}
+		
+		// Return filtered response with specified queues
+		return c.JSON(buildFilteredResponse(schedules, validatedQueues))
 	}
 }
