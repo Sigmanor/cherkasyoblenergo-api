@@ -28,7 +28,8 @@ Retrieve scheduling records based on filter options.
 {
   "option": "all | latest_n | by_date",
   "date": "YYYY-MM-DD", // Required for "by_date" option
-  "limit": 5 // Required for "latest_n" option, must be > 0
+  "limit": 5, // Required for "latest_n" option, must be > 0
+  "queue": "3_2" // Optional: Filter by queue(s). Single: "3_2" or multiple: "4_1, 3_1" (comma-separated, X: 1-6, Y: 1-2)
 }
 ```
 
@@ -37,16 +38,20 @@ Retrieve scheduling records based on filter options.
 - `all`: Retrieves all schedule records
 - `latest_n`: Gets limited number of recent records (requires `limit`)
 - `by_date`: Gets records for specific date (requires `date`)
+- `queue` (optional): Filters response to include only the specified queue field(s). Accepts a single queue (e.g., "3_2") or multiple comma-separated queues (e.g., "4_1, 3_1"). Whitespace around commas is ignored. Duplicates are automatically removed.
 
 #### Response
+
+##### Full Response (without queue filter)
 
 ```json
 [
   {
     "id": 1234,
     "news_id": 100,
-    "title": "Schedule Title",
+    "title": "Schedule for November 14",
     "date": "2024-03-20",
+    "schedule_date": "14.11",
     "1_1": "text",
     "1_2": "text",
     "2_1": "text",
@@ -59,6 +64,37 @@ Retrieve scheduling records based on filter options.
     "5_2": "text",
     "6_1": "text",
     "6_2": "text"
+  }
+]
+```
+
+##### Filtered Response (with queue filter)
+
+```json
+[
+  {
+    "id": 1234,
+    "news_id": 100,
+    "title": "Schedule for November 14",
+    "date": "2024-03-20",
+    "schedule_date": "14.11",
+    "3_2": "00:30 - 02:30, 06:00 - 09:00"
+  }
+]
+```
+
+##### Filtered Response (with multiple queues)
+
+```json
+[
+  {
+    "id": 1234,
+    "news_id": 100,
+    "title": "Schedule for November 14",
+    "date": "2024-03-20",
+    "schedule_date": "14.11",
+    "4_1": "01:00 - 03:00, 06:00 - 09:00",
+    "3_1": "00:30 - 02:30, 05:30 - 08:00"
   }
 ]
 ```
@@ -138,6 +174,32 @@ curl -X POST "https://api.example.com/cherkasyoblenergo/api/blackout-schedule" \
   -d '{
     "option": "latest_n",
     "limit": 5
+  }'
+```
+
+### Get Latest Schedules with Queue Filter
+
+```bash
+curl -X POST "https://api.example.com/cherkasyoblenergo/api/blackout-schedule" \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "option": "latest_n",
+    "limit": 5,
+    "queue": "3_2"
+  }'
+```
+
+### Get Latest Schedules with Multiple Queue Filter
+
+```bash
+curl -X POST "https://api.example.com/cherkasyoblenergo/api/blackout-schedule" \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "option": "latest_n",
+    "limit": 5,
+    "queue": "4_1, 3_1, 2_2"
   }'
 ```
 
