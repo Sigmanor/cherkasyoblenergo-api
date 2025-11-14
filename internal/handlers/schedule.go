@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -47,30 +48,30 @@ func parseAndValidateQueues(queueStr string) ([]string, error) {
 
 	// Split by commas
 	tokens := strings.Split(queueStr, ",")
-	
+
 	// Regex pattern for validation
 	queuePattern := regexp.MustCompile(`^[1-6]_[1-2]$`)
-	
+
 	// Track seen queues for deduplication
 	seen := make(map[string]bool)
 	result := []string{}
-	
+
 	for _, token := range tokens {
 		// Trim whitespace
 		queue := strings.TrimSpace(token)
-		
+
 		// Validate against regex
 		if !queuePattern.MatchString(queue) {
 			return nil, fmt.Errorf("Invalid queue value: '%s'. Each queue must match format X_Y where X is 1-6 and Y is 1-2", queue)
 		}
-		
+
 		// Deduplicate while preserving order
 		if !seen[queue] {
 			seen[queue] = true
 			result = append(result, queue)
 		}
 	}
-	
+
 	return result, nil
 }
 
@@ -115,15 +116,61 @@ func buildFilteredResponse(schedules []Schedule, queueNames []string) []map[stri
 			"date":          schedule.Date,
 			"schedule_date": schedule.ScheduleDate,
 		}
-		
+
 		// Add each queue value to the result map
 		for _, queueName := range queueNames {
 			resultMap[queueName] = getQueueValue(&schedule, queueName)
 		}
-		
+
 		result[i] = resultMap
 	}
 	return result
+}
+
+func handleScheduleRequest(c *fiber.Ctx, db *gorm.DB, filter ScheduleFilter) error {
+	var schedules []Schedule
+	query := db.Table("schedules")
+	switch filter.Option {
+	case "all":
+		if err := query.Find(&schedules).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve records"})
+		}
+	case "latest_n":
+		if filter.Limit <= 0 {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid limit value, it must be greater than zero"})
+		}
+		if err := query.Order("date desc").Limit(filter.Limit).Find(&schedules).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve latest records"})
+		}
+	case "by_date":
+		if filter.Date == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Date must be specified in YYYY-MM-DD format"})
+		}
+		date, err := time.Parse("2006-01-02", filter.Date)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid date format, expected YYYY-MM-DD"})
+		}
+		if err := query.Where("DATE(date) = ?", date.Format("2006-01-02")).Find(&schedules).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve records by date"})
+		}
+	default:
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid option parameter value"})
+	}
+
+	for i := range schedules {
+		schedules[i].ScheduleDate = utils.ExtractScheduleDateFromTitle(schedules[i].Title)
+	}
+
+	validatedQueues, err := parseAndValidateQueues(filter.Queue)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	if len(validatedQueues) == 0 {
+		return c.JSON(schedules)
+	}
+
+	return c.JSON(buildFilteredResponse(schedules, validatedQueues))
 }
 
 func PostSchedule(db *gorm.DB) fiber.Handler {
@@ -132,51 +179,26 @@ func PostSchedule(db *gorm.DB) fiber.Handler {
 		if err := c.BodyParser(&filter); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid JSON format"})
 		}
-		var schedules []Schedule
-		query := db.Table("schedules")
-		switch filter.Option {
-		case "all":
-			if err := query.Find(&schedules).Error; err != nil {
-				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve records"})
-			}
-		case "latest_n":
-			if filter.Limit <= 0 {
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid limit value, it must be greater than zero"})
-			}
-			if err := query.Order("date desc").Limit(filter.Limit).Find(&schedules).Error; err != nil {
-				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve latest records"})
-			}
-		case "by_date":
-			if filter.Date == "" {
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Date must be specified in YYYY-MM-DD format"})
-			}
-			date, err := time.Parse("2006-01-02", filter.Date)
+		return handleScheduleRequest(c, db, filter)
+	}
+}
+
+func GetSchedule(db *gorm.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		filter := ScheduleFilter{
+			Option: c.Query("option"),
+			Date:   c.Query("date"),
+			Queue:  c.Query("queue"),
+		}
+
+		if limitStr := c.Query("limit"); limitStr != "" {
+			limit, err := strconv.Atoi(limitStr)
 			if err != nil {
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid date format, expected YYYY-MM-DD"})
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid limit parameter, expected integer value"})
 			}
-			if err := query.Where("DATE(date) = ?", date.Format("2006-01-02")).Find(&schedules).Error; err != nil {
-				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve records by date"})
-			}
-		default:
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid option parameter value"})
+			filter.Limit = limit
 		}
 
-		for i := range schedules {
-			schedules[i].ScheduleDate = utils.ExtractScheduleDateFromTitle(schedules[i].Title)
-		}
-
-		// Parse and validate queues
-		validatedQueues, err := parseAndValidateQueues(filter.Queue)
-		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-		}
-		
-		// If no queues specified, return full schedules
-		if len(validatedQueues) == 0 {
-			return c.JSON(schedules)
-		}
-		
-		// Return filtered response with specified queues
-		return c.JSON(buildFilteredResponse(schedules, validatedQueues))
+		return handleScheduleRequest(c, db, filter)
 	}
 }

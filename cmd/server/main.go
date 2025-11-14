@@ -46,6 +46,7 @@ func runServer() error {
 	app.Use(middleware.Logger())
 
 	api := app.Group("/cherkasyoblenergo/api")
+	api.Get("/blackout-schedule", handlers.GetSchedule(db))
 	api.Post("/blackout-schedule", handlers.PostSchedule(db))
 	api.Get("/generate-api-key", handlers.GenerateAPIKey(db, cfg))
 	api.Get("/update-api-key", handlers.ManageAPIKey(db, cfg))

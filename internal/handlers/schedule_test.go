@@ -391,7 +391,6 @@ func TestPostSchedule_ScheduleDateField_AllOptions(t *testing.T) {
 	}
 }
 
-
 func TestPostSchedule_MultipleQueues_Success(t *testing.T) {
 	db := setupTestDB()
 	app := fiber.New()
@@ -806,4 +805,65 @@ func TestPostSchedule_EmptyQueue_ReturnsAllQueues(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetSchedule_LatestNWithQueues(t *testing.T) {
+	db := setupTestDB()
+	app := fiber.New()
+	app.Get("/schedule", GetSchedule(db))
+
+	req := httptest.NewRequest("GET", "/schedule?option=latest_n&limit=2&queue=3_2,4_1", nil)
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.Equal(t, 200, resp.StatusCode)
+
+	bodyBytes, _ := io.ReadAll(resp.Body)
+	var responseBody []map[string]interface{}
+	err = json.Unmarshal(bodyBytes, &responseBody)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, responseBody)
+	assert.LessOrEqual(t, len(responseBody), 2)
+
+	for _, schedule := range responseBody {
+		assert.Contains(t, schedule, "id")
+		assert.Contains(t, schedule, "news_id")
+		assert.Contains(t, schedule, "title")
+		assert.Contains(t, schedule, "date")
+		assert.Contains(t, schedule, "schedule_date")
+
+		assert.Contains(t, schedule, "3_2")
+		assert.Contains(t, schedule, "4_1")
+		assert.NotEmpty(t, schedule["3_2"])
+		assert.NotEmpty(t, schedule["4_1"])
+
+		assert.NotContains(t, schedule, "1_1")
+		assert.NotContains(t, schedule, "1_2")
+		assert.NotContains(t, schedule, "2_1")
+		assert.NotContains(t, schedule, "2_2")
+		assert.NotContains(t, schedule, "3_1")
+		assert.NotContains(t, schedule, "4_2")
+		assert.NotContains(t, schedule, "5_1")
+		assert.NotContains(t, schedule, "5_2")
+		assert.NotContains(t, schedule, "6_1")
+		assert.NotContains(t, schedule, "6_2")
+	}
+}
+
+func TestGetSchedule_InvalidLimit(t *testing.T) {
+	db := setupTestDB()
+	app := fiber.New()
+	app.Get("/schedule", GetSchedule(db))
+
+	req := httptest.NewRequest("GET", "/schedule?option=latest_n&limit=abc", nil)
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+
+	bodyBytes, _ := io.ReadAll(resp.Body)
+	var errorResponse map[string]interface{}
+	err = json.Unmarshal(bodyBytes, &errorResponse)
+	assert.NoError(t, err)
+	assert.Contains(t, errorResponse, "error")
 }
