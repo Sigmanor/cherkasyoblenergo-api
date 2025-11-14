@@ -9,38 +9,91 @@ import (
 	"gorm.io/gorm"
 )
 
-func ManageAPIKey(db *gorm.DB, cfg config.Config) fiber.Handler {
+type updateAPIKeyRequest struct {
+	AdminPassword string `json:"admin_password"`
+	Key           string `json:"key"`
+	RotateKey     bool   `json:"rotate_key"`
+	RateLimit     *int   `json:"rate_limit"`
+}
+
+func UpdateAPIKey(db *gorm.DB, cfg config.Config) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		if !isAdmin(c, cfg.AdminPassword) {
+		var req updateAPIKeyRequest
+		if err := c.BodyParser(&req); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid JSON format"})
+		}
+
+		if !isAdminPasswordValid(req.AdminPassword, cfg.AdminPassword) {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 		}
-		key := c.Query("key")
-		if key == "" {
+
+		if req.Key == "" {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "API key is required"})
 		}
+
+		if !req.RotateKey && req.RateLimit == nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "At least one update field must be specified"})
+		}
+
 		var apiKey models.APIKey
-		if err := db.Where("key = ?", key).First(&apiKey).Error; err != nil {
+		if err := db.Where("key = ?", req.Key).First(&apiKey).Error; err != nil {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "API key not found"})
 		}
-		if c.Query("update_key") == "true" {
+
+		updates := make(map[string]interface{})
+		response := fiber.Map{"message": "API key updated successfully"}
+
+		if req.RotateKey {
 			newKey := uuid.New().String()
-			if err := db.Model(&apiKey).Update("key", newKey).Error; err != nil {
-				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update API key"})
-			}
-			return c.JSON(fiber.Map{"message": "API key updated successfully", "new_key": newKey})
+			updates["key"] = newKey
+			response["new_key"] = newKey
 		}
-		if c.Query("delete_key") == "true" {
-			if err := db.Delete(&apiKey).Error; err != nil {
-				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to delete API key"})
+
+		if req.RateLimit != nil {
+			if *req.RateLimit <= 0 {
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "rate_limit must be greater than zero"})
 			}
-			return c.JSON(fiber.Map{"message": "API key deleted successfully"})
+			updates["rate_limit"] = *req.RateLimit
+			response["new_rate_limit"] = *req.RateLimit
 		}
-		if rateLimit := c.Query("update_rate_limit"); rateLimit != "" {
-			if err := db.Model(&apiKey).Update("rate_limit", rateLimit).Error; err != nil {
-				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update rate limit"})
-			}
-			return c.JSON(fiber.Map{"message": "Rate limit updated successfully", "new_rate_limit": rateLimit})
+
+		if err := db.Model(&apiKey).Updates(updates).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update API key"})
 		}
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "No valid operation specified"})
+
+		return c.JSON(response)
+	}
+}
+
+type deleteAPIKeyRequest struct {
+	AdminPassword string `json:"admin_password"`
+	Key           string `json:"key"`
+}
+
+func DeleteAPIKey(db *gorm.DB, cfg config.Config) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		var req deleteAPIKeyRequest
+		if err := c.BodyParser(&req); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid JSON format"})
+		}
+
+		if !isAdminPasswordValid(req.AdminPassword, cfg.AdminPassword) {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+		}
+
+		if req.Key == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "API key is required"})
+		}
+
+		var apiKey models.APIKey
+		if err := db.Where("key = ?", req.Key).First(&apiKey).Error; err != nil {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "API key not found"})
+		}
+
+		if err := db.Delete(&apiKey).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to delete API key"})
+		}
+
+		return c.JSON(fiber.Map{"message": "API key deleted successfully"})
 	}
 }
