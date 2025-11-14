@@ -30,7 +30,6 @@ Unofficial API service for retrieving power outage schedules from [cherkasyoblen
     - [Requirements](#requirements)
     - [Local Development](#local-development)
   - [🤝 Contributing](#-contributing)
-  - [❗ Troubleshooting](#-troubleshooting)
   - [🚦 Running Tests](#-running-tests)
   - [⚡ Free API Access](#-free-api-access)
 
@@ -100,9 +99,10 @@ docker compose -f docker-compose.app.yml up -d --build
 
 ### Available Endpoints
 
-- `POST /blackout-schedule` - Get power outage schedules
-- `GET /generate-api-key` - Generate API key (admin only)
-- `GET /update-api-key` - Manage API keys (admin only)
+- `GET /blackout-schedule` - Get power outage schedules
+- `POST /api-keys` - Create API key (admin only)
+- `PATCH /api-keys` - Rotate key or update rate limit (admin only)
+- `DELETE /api-keys` - Delete API key (admin only)
 
 [Detailed API Documentation](API.md)
 
@@ -131,18 +131,6 @@ go build -o cherkasyoblenergo_api ./cmd/server/main.go
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
-
-## ❗ Troubleshooting
-
-- **Database Connection Issues**:
-  - For Docker deployment: Check if postgres_data volume is created
-  - Verify PostgreSQL credentials and connection settings in `.env`
-  - For full Docker setup, ensure the db service is healthy
-- **API Key Issues**: Ensure proper API key generation and rate limit configuration
-- **Docker Issues**:
-  - Check Docker logs: `docker-compose logs`
-  - Verify Docker network configuration
-  - Ensure all required environment variables are set
 
 ## 🚦 Running Tests
 
