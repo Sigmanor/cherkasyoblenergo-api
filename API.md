@@ -18,11 +18,18 @@ X-API-Key: YOUR_API_KEY
 
 ### Get Power Outage Schedule
 
-`POST /blackout-schedule`
+`GET /blackout-schedule`
 
 Retrieve scheduling records based on filter options.
 
-#### Request Body
+#### Query Parameters
+
+- `option` (required): `all`, `latest_n`, or `by_date`
+- `date` (required for `by_date`): `YYYY-MM-DD`
+- `limit` (required for `latest_n`): Integer greater than 0
+- `queue` (optional): Comma-separated queue identifiers (e.g., `3_2` or `4_1,3_1`)
+
+#### Example Query (JSON equivalent shown for clarity)
 
 ```json
 {
@@ -165,42 +172,25 @@ Manage existing API keys.
 
 ## Example Usage
 
-### Get Latest Schedules
+### Get Latest Schedules (GET)
 
 ```bash
-curl -X POST "https://api.example.com/cherkasyoblenergo/api/blackout-schedule" \
-  -H "X-API-Key: YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "option": "latest_n",
-    "limit": 5
-  }'
+curl "https://api.example.com/cherkasyoblenergo/api/blackout-schedule?option=latest_n&limit=5" \
+  -H "X-API-Key: YOUR_API_KEY"
 ```
 
 ### Get Latest Schedules with Queue Filter
 
 ```bash
-curl -X POST "https://api.example.com/cherkasyoblenergo/api/blackout-schedule" \
-  -H "X-API-Key: YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "option": "latest_n",
-    "limit": 5,
-    "queue": "3_2"
-  }'
+curl "https://api.example.com/cherkasyoblenergo/api/blackout-schedule?option=latest_n&limit=5&queue=3_2" \
+  -H "X-API-Key: YOUR_API_KEY"
 ```
 
 ### Get Latest Schedules with Multiple Queue Filter
 
 ```bash
-curl -X POST "https://api.example.com/cherkasyoblenergo/api/blackout-schedule" \
-  -H "X-API-Key: YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "option": "latest_n",
-    "limit": 5,
-    "queue": "4_1, 3_1, 2_2"
-  }'
+curl "https://api.example.com/cherkasyoblenergo/api/blackout-schedule?option=latest_n&limit=5&queue=4_1,3_1,2_2" \
+  -H "X-API-Key: YOUR_API_KEY"
 ```
 
 ### Generate API Key

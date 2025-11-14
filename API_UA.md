@@ -18,11 +18,18 @@ X-API-Key: YOUR_API_KEY
 
 ### Отримати графік відключень електроенергії
 
-`POST /blackout-schedule`
+`GET /blackout-schedule`
 
 Отримати записи розкладу на основі параметрів фільтрації.
 
-#### Тіло запиту
+#### Параметри запиту
+
+- `option` (обов'язково): `all`, `latest_n` або `by_date`
+- `date` (обов'язково для `by_date`): `YYYY-MM-DD`
+- `limit` (обов'язково для `latest_n`): ціле число > 0
+- `queue` (опціонально): значення черг через кому (наприклад, `3_2` або `4_1,3_1`)
+
+#### Приклад параметрів (JSON еквівалент для наочності)
 
 ```json
 {
@@ -170,39 +177,22 @@ X-API-Key: YOUR_API_KEY
 ### Отримати останні розклади
 
 ```bash
-curl -X POST "https://api.example.com/cherkasyoblenergo/api/blackout-schedule" \
-  -H "X-API-Key: YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "option": "latest_n",
-    "limit": 5
-  }'
+curl "https://api.example.com/cherkasyoblenergo/api/blackout-schedule?option=latest_n&limit=5" \
+  -H "X-API-Key: YOUR_API_KEY"
 ```
 
 ### Отримати останні розклади з фільтром черги
 
 ```bash
-curl -X POST "https://api.example.com/cherkasyoblenergo/api/blackout-schedule" \
-  -H "X-API-Key: YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "option": "latest_n",
-    "limit": 5,
-    "queue": "3_2"
-  }'
+curl "https://api.example.com/cherkasyoblenergo/api/blackout-schedule?option=latest_n&limit=5&queue=3_2" \
+  -H "X-API-Key: YOUR_API_KEY"
 ```
 
 ### Отримати останні розклади з фільтром декількох черг
 
 ```bash
-curl -X POST "https://api.example.com/cherkasyoblenergo/api/blackout-schedule" \
-  -H "X-API-Key: YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "option": "latest_n",
-    "limit": 5,
-    "queue": "4_1, 3_1, 2_2"
-  }'
+curl "https://api.example.com/cherkasyoblenergo/api/blackout-schedule?option=latest_n&limit=5&queue=4_1,3_1,2_2" \
+  -H "X-API-Key: YOUR_API_KEY"
 ```
 
 ### Згенерувати API ключ
