@@ -47,9 +47,9 @@ func runServer() error {
 
 	api := app.Group("/cherkasyoblenergo/api")
 	api.Get("/blackout-schedule", handlers.GetSchedule(db))
-	api.Post("/blackout-schedule", handlers.PostSchedule(db))
-	api.Get("/generate-api-key", handlers.GenerateAPIKey(db, cfg))
-	api.Get("/update-api-key", handlers.ManageAPIKey(db, cfg))
+	api.Post("/api-keys", handlers.CreateAPIKey(db, cfg))
+	api.Patch("/api-keys", handlers.UpdateAPIKey(db, cfg))
+	api.Delete("/api-keys", handlers.DeleteAPIKey(db, cfg))
 
 	app.Hooks().OnListen(func(data fiber.ListenData) error {
 		log.Println("Server started, running initial news parsing")
