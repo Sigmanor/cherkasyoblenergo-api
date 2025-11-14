@@ -1,3 +1,12 @@
+# [1.6.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.5.0...v1.6.0) (2025-11-14)
+
+
+### Features
+
+* **handlers:** support schedule queue filtering ([761e3bd](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/761e3bde268f2af43c8c3089635c1b74b1d7745f))
+* **models:** add schedule date field ([4973f14](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/4973f14e6af92a07ae816f66ff6d03e4491c9ecd))
+* **utils:** add schedule date extractor ([8473f32](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/8473f3254f5aacee7a09f9f049137d0f0f184f56))
+
 # [1.5.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.4.0...v1.5.0) (2025-10-30)
 
 
