@@ -3,3 +3,4 @@ app.env
 tmp
 .env
 .env.prod
+.cache
