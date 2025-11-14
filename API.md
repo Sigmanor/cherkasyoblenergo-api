@@ -106,16 +106,20 @@ Retrieve scheduling records based on filter options.
 ]
 ```
 
-### Generate API Key
+### Create API Key
 
-`GET /generate-api-key`
+`POST /api-keys`
 
-Generate new API key with optional rate limiting.
+Generate a new API key with optional rate limiting. Provide the admin password in the request body.
 
-#### Query Parameters
+#### Request Body
 
-- `admin_password` (required): Administrative password
-- `rate_limit` (optional): Requests per minute (default: 1)
+```json
+{
+  "admin_password": "YOUR_ADMIN_PASSWORD",
+  "rate_limit": 2 // Optional: requests per minute (default: 2, must be > 0)
+}
+```
 
 #### Response
 
@@ -128,35 +132,53 @@ Generate new API key with optional rate limiting.
 
 ### Update API Key
 
-`GET /update-api-key`
+`PATCH /api-keys`
 
-Manage existing API keys.
+Rotate an existing API key and/or update its rate limit. Provide credentials and the target key in the request body.
 
-#### Query Parameters
-
-- `admin_password` (required): Administrative password
-- `key` (required): API key to manage
-- `update_key` (optional): Set true to generate new key
-- `delete_key` (optional): Set true to delete key
-- `update_rate_limit` (optional): New rate limit value
-
-#### Response Examples
+#### Request Body
 
 ```json
-// Update key
+{
+  "admin_password": "YOUR_ADMIN_PASSWORD",
+  "key": "target_api_key",
+  "rotate_key": true, // Optional: generate a new key value
+  "rate_limit": 5 // Optional: new rate limit, must be > 0
+}
+```
+
+At least one field is required.
+
+#### Response
+
+```json
 {
   "message": "API key updated successfully",
-  "new_key": "new_generated_key"
+  "new_key": "new_generated_key",
+  "new_rate_limit": 5
 }
+```
 
-// Delete key
+### Delete API Key
+
+`DELETE /api-keys`
+
+Remove an API key permanently. Supply the admin password and target key in the request body.
+
+#### Request Body
+
+```json
+{
+  "admin_password": "YOUR_ADMIN_PASSWORD",
+  "key": "target_api_key"
+}
+```
+
+#### Response
+
+```json
 {
   "message": "API key deleted successfully"
-}
-
-// Update rate limit
-{
-  "message": "Rate limit updated successfully"
 }
 ```
 
@@ -193,8 +215,26 @@ curl "https://api.example.com/cherkasyoblenergo/api/blackout-schedule?option=lat
   -H "X-API-Key: YOUR_API_KEY"
 ```
 
-### Generate API Key
+### Create API Key
 
 ```bash
-curl "https://api.example.com/cherkasyoblenergo/api/generate-api-key?admin_password=YOUR_ADMIN_PASSWORD&rate_limit=5"
+curl -X POST "https://api.example.com/cherkasyoblenergo/api/api-keys" \
+  -H "Content-Type: application/json" \
+  -d '{"admin_password":"YOUR_ADMIN_PASSWORD","rate_limit":5}'
+```
+
+### Update API Key
+
+```bash
+curl -X PATCH "https://api.example.com/cherkasyoblenergo/api/api-keys" \
+  -H "Content-Type: application/json" \
+  -d '{"admin_password":"YOUR_ADMIN_PASSWORD","key":"YOUR_KEY","rotate_key":true,"rate_limit":4}'
+```
+
+### Delete API Key
+
+```bash
+curl -X DELETE "https://api.example.com/cherkasyoblenergo/api/api-keys" \
+  -H "Content-Type: application/json" \
+  -d '{"admin_password":"YOUR_ADMIN_PASSWORD","key":"YOUR_KEY"}'
 ```

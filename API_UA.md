@@ -108,16 +108,20 @@ X-API-Key: YOUR_API_KEY
 ]
 ```
 
-### Згенерувати API ключ
+### Створити API ключ
 
-`GET /generate-api-key`
+`POST /api-keys`
 
-Згенерувати новий API ключ з опціональним обмеженням швидкості.
+Створити новий API ключ з опціональним обмеженням швидкості. Передайте `admin_password` у тілі запиту.
 
-#### Параметри запиту
+#### Тіло запиту
 
-- `admin_password` (обов'язково): Адміністративний пароль
-- `rate_limit` (опціонально): Запитів на хвилину (за замовчуванням: 1)
+```json
+{
+  "admin_password": "YOUR_ADMIN_PASSWORD",
+  "rate_limit": 2 // Опціонально: запитів на хвилину (за замовчуванням 2, має бути > 0)
+}
+```
 
 #### Відповідь
 
@@ -130,35 +134,53 @@ X-API-Key: YOUR_API_KEY
 
 ### Оновити API ключ
 
-`GET /update-api-key`
+`PATCH /api-keys`
 
-Керувати існуючими API ключами.
+Повернути новий ключ або змінити ліміт швидкості. Передайте `admin_password` і цільовий ключ у тілі запиту.
 
-#### Параметри запиту
-
-- `admin_password` (обов'язково): Адміністративний пароль
-- `key` (обов'язково): API ключ для керування
-- `update_key` (опціонально): Встановіть true для генерації нового ключа
-- `delete_key` (опціонально): Встановіть true для видалення ключа
-- `update_rate_limit` (опціонально): Нове значення обмеження швидкості
-
-#### Приклади відповідей
+#### Тіло запиту
 
 ```json
-// Update key
+{
+  "admin_password": "YOUR_ADMIN_PASSWORD",
+  "key": "target_api_key",
+  "rotate_key": true, // Опціонально: згенерувати нове значення ключа
+  "rate_limit": 5 // Опціонально: новий ліміт запитів (> 0)
+}
+```
+
+Потрібно вказати хоча б одне поле.
+
+#### Відповідь
+
+```json
 {
   "message": "API key updated successfully",
-  "new_key": "new_generated_key"
+  "new_key": "new_generated_key",
+  "new_rate_limit": 5
 }
+```
 
-// Delete key
+### Видалити API ключ
+
+`DELETE /api-keys`
+
+Повністю видалити API ключ. Передайте `admin_password` і ключ у тілі запиту.
+
+#### Тіло запиту
+
+```json
+{
+  "admin_password": "YOUR_ADMIN_PASSWORD",
+  "key": "target_api_key"
+}
+```
+
+#### Відповідь
+
+```json
 {
   "message": "API key deleted successfully"
-}
-
-// Update rate limit
-{
-  "message": "Rate limit updated successfully"
 }
 ```
 
@@ -195,8 +217,26 @@ curl "https://api.example.com/cherkasyoblenergo/api/blackout-schedule?option=lat
   -H "X-API-Key: YOUR_API_KEY"
 ```
 
-### Згенерувати API ключ
+### Створити API ключ
 
 ```bash
-curl "https://api.example.com/cherkasyoblenergo/api/generate-api-key?admin_password=YOUR_ADMIN_PASSWORD&rate_limit=5"
+curl -X POST "https://api.example.com/cherkasyoblenergo/api/api-keys" \
+  -H "Content-Type: application/json" \
+  -d '{"admin_password":"YOUR_ADMIN_PASSWORD","rate_limit":5}'
+```
+
+### Оновити API ключ
+
+```bash
+curl -X PATCH "https://api.example.com/cherkasyoblenergo/api/api-keys" \
+  -H "Content-Type: application/json" \
+  -d '{"admin_password":"YOUR_ADMIN_PASSWORD","key":"YOUR_KEY","rotate_key":true,"rate_limit":4}'
+```
+
+### Видалити API ключ
+
+```bash
+curl -X DELETE "https://api.example.com/cherkasyoblenergo/api/api-keys" \
+  -H "Content-Type: application/json" \
+  -d '{"admin_password":"YOUR_ADMIN_PASSWORD","key":"YOUR_KEY"}'
 ```
