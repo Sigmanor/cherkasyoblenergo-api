@@ -1,3 +1,18 @@
+# [1.8.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.7.0...v1.8.0) (2025-11-14)
+
+
+### Bug Fixes
+
+* **auth:** skip auth for api keys list ([09bbea9](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/09bbea9d19ceddc5d0e454dedfbda51fa98edde1))
+* **middleware:** skip rate limiter for api keys list ([ba72e2e](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/ba72e2e6e5e5b091e82e30bc0e4301f80e8718fb))
+
+
+### Features
+
+* **handlers:** add json body to create api keys ([45b043c](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/45b043c81522e105b9bcb3e8f5395125ad074436))
+* **handlers:** split api key update and delete handlers ([faee55b](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/faee55b64ceadf76093a03055c3e25afe84453a5))
+* **server:** standardize api key CRUD routes ([816ce67](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/816ce67be43d7ee095fcfbd8f9282aeb311beec9))
+
 # [1.7.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.6.0...v1.7.0) (2025-11-14)
 
 
