@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.6.0...v1.7.0) (2025-11-14)
+
+
+### Features
+
+* **api:** add GET schedule endpoint ([280e57a](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/280e57af56f8e3802a34fbecd53def67a7f1fe75))
+
 # [1.6.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.5.0...v1.6.0) (2025-11-14)
 
 
