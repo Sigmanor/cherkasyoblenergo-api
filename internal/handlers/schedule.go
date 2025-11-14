@@ -173,16 +173,6 @@ func handleScheduleRequest(c *fiber.Ctx, db *gorm.DB, filter ScheduleFilter) err
 	return c.JSON(buildFilteredResponse(schedules, validatedQueues))
 }
 
-func PostSchedule(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		var filter ScheduleFilter
-		if err := c.BodyParser(&filter); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid JSON format"})
-		}
-		return handleScheduleRequest(c, db, filter)
-	}
-}
-
 func GetSchedule(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		filter := ScheduleFilter{
