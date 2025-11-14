@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"cherkasyoblenergo-api/internal/config"
@@ -19,28 +20,30 @@ func setupGenerateDB() *gorm.DB {
 	return db
 }
 
-func TestGenerateAPIKey_Unauthorized(t *testing.T) {
+func TestCreateAPIKey_Unauthorized(t *testing.T) {
 	db := setupGenerateDB()
 	cfg := config.Config{AdminPassword: "admin"}
-	handler := GenerateAPIKey(db, cfg)
+	handler := CreateAPIKey(db, cfg)
 	app := fiber.New()
-	app.Get("/generate", handler)
+	app.Post("/api-keys", handler)
 
-	req := httptest.NewRequest("GET", "/generate?admin_password=wrong", nil)
+	req := httptest.NewRequest("POST", "/api-keys", strings.NewReader(`{"admin_password":"wrong"}`))
+	req.Header.Set("Content-Type", "application/json")
 	resp, _ := app.Test(req)
 	if resp.StatusCode != fiber.StatusUnauthorized {
 		t.Errorf("Expected status %d, got %d", fiber.StatusUnauthorized, resp.StatusCode)
 	}
 }
 
-func TestGenerateAPIKey_Success(t *testing.T) {
+func TestCreateAPIKey_SuccessWithJSON(t *testing.T) {
 	db := setupGenerateDB()
 	cfg := config.Config{AdminPassword: "admin"}
-	handler := GenerateAPIKey(db, cfg)
+	handler := CreateAPIKey(db, cfg)
 	app := fiber.New()
-	app.Get("/generate", handler)
+	app.Post("/api-keys", handler)
 
-	req := httptest.NewRequest("GET", "/generate?admin_password=admin&rate_limit=3", nil)
+	req := httptest.NewRequest("POST", "/api-keys", strings.NewReader(`{"admin_password":"admin","rate_limit":3}`))
+	req.Header.Set("Content-Type", "application/json")
 	resp, _ := app.Test(req)
 	if resp.StatusCode != fiber.StatusOK {
 		t.Errorf("Expected status %d, got %d", fiber.StatusOK, resp.StatusCode)
@@ -57,5 +60,30 @@ func TestGenerateAPIKey_Success(t *testing.T) {
 	}
 	if _, ok := result["api_key"]; !ok {
 		t.Error("Expected api_key in response")
+	}
+}
+
+func TestCreateAPIKey_DefaultRateLimit(t *testing.T) {
+	db := setupGenerateDB()
+	cfg := config.Config{AdminPassword: "admin"}
+	handler := CreateAPIKey(db, cfg)
+	app := fiber.New()
+	app.Post("/api-keys", handler)
+
+	req := httptest.NewRequest("POST", "/api-keys", strings.NewReader(`{"admin_password":"admin"}`))
+	req.Header.Set("Content-Type", "application/json")
+	resp, _ := app.Test(req)
+	if resp.StatusCode != fiber.StatusOK {
+		t.Errorf("Expected status %d, got %d", fiber.StatusOK, resp.StatusCode)
+	}
+
+	var result map[string]any
+	json.NewDecoder(resp.Body).Decode(&result)
+	if rateLimit, ok := result["rate_limit"]; ok {
+		if int(rateLimit.(float64)) != 2 {
+			t.Errorf("Expected default rate_limit 2, got %v", rateLimit)
+		}
+	} else {
+		t.Error("Expected rate_limit in response")
 	}
 }

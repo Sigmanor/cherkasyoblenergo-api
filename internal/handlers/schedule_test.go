@@ -1,10 +1,11 @@
 package handlers
 
 import (
-	"bytes"
 	"encoding/json"
 	"io"
+	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 	"time"
 
@@ -89,54 +90,50 @@ func setupTestDB() *gorm.DB {
 	return db
 }
 
-func TestPostSchedule_InvalidJSON(t *testing.T) {
-	db := setupTestDB()
-	handler := PostSchedule(db)
-	app := fiber.New()
-	app.Post("/schedules", handler)
+func newGetScheduleRequest(params map[string]string) *http.Request {
+	path := "/schedule"
+	query := url.Values{}
 
-	req := httptest.NewRequest("POST", "/schedules", bytes.NewBufferString("invalid json"))
-	req.Header.Set("Content-Type", "application/json")
-	resp, _ := app.Test(req)
-	if resp.StatusCode != fiber.StatusBadRequest {
-		t.Errorf("Expected status %d, got %d", fiber.StatusBadRequest, resp.StatusCode)
+	for key, value := range params {
+		if value != "" {
+			query.Set(key, value)
+		}
 	}
+
+	if encoded := query.Encode(); encoded != "" {
+		path = path + "?" + encoded
+	}
+
+	return httptest.NewRequest("GET", path, nil)
 }
 
-func TestPostSchedule_AllOption(t *testing.T) {
+func TestGetSchedule_AllOption(t *testing.T) {
 	db := setupTestDB()
-	handler := PostSchedule(db)
 	app := fiber.New()
-	app.Post("/schedules", handler)
+	app.Get("/schedule", GetSchedule(db))
 
-	body, _ := json.Marshal(map[string]any{
+	req := newGetScheduleRequest(map[string]string{
 		"option": "all",
 	})
-	req := httptest.NewRequest("POST", "/schedules", bytes.NewBuffer(body))
-	req.Header.Set("Content-Type", "application/json")
-	resp, _ := app.Test(req)
-	if resp.StatusCode != fiber.StatusOK {
-		t.Errorf("Expected status %d, got %d", fiber.StatusOK, resp.StatusCode)
-	}
-}
-
-func TestPostSchedule_QueueFilter(t *testing.T) {
-	db := setupTestDB()
-	app := fiber.New()
-	app.Post("/schedule", PostSchedule(db))
-
-	requestBody := map[string]interface{}{
-		"option": "all",
-		"queue":  "3_2",
-	}
-	body, _ := json.Marshal(requestBody)
-
-	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req)
 	assert.NoError(t, err)
-	assert.Equal(t, 200, resp.StatusCode)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+}
+
+func TestGetSchedule_QueueFilter(t *testing.T) {
+	db := setupTestDB()
+	app := fiber.New()
+	app.Get("/schedule", GetSchedule(db))
+
+	req := newGetScheduleRequest(map[string]string{
+		"option": "all",
+		"queue":  "3_2",
+	})
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 	bodyBytes, _ := io.ReadAll(resp.Body)
 	var responseBody []map[string]interface{}
@@ -168,23 +165,19 @@ func TestPostSchedule_QueueFilter(t *testing.T) {
 	}
 }
 
-func TestPostSchedule_QueueFilter_InvalidFormat(t *testing.T) {
+func TestGetSchedule_QueueFilter_InvalidFormat(t *testing.T) {
 	db := setupTestDB()
 	app := fiber.New()
-	app.Post("/schedule", PostSchedule(db))
+	app.Get("/schedule", GetSchedule(db))
 
 	invalidQueues := []string{"3-2", "7_1", "1_3", "abc"}
 
 	for _, invalidQueue := range invalidQueues {
 		t.Run("Queue_"+invalidQueue, func(t *testing.T) {
-			requestBody := map[string]interface{}{
+			req := newGetScheduleRequest(map[string]string{
 				"option": "all",
 				"queue":  invalidQueue,
-			}
-			body, _ := json.Marshal(requestBody)
-
-			req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(body))
-			req.Header.Set("Content-Type", "application/json")
+			})
 
 			resp, err := app.Test(req)
 			assert.NoError(t, err)
@@ -199,24 +192,20 @@ func TestPostSchedule_QueueFilter_InvalidFormat(t *testing.T) {
 	}
 }
 
-func TestPostSchedule_QueueFilter_WithLatestN(t *testing.T) {
+func TestGetSchedule_QueueFilter_WithLatestN(t *testing.T) {
 	db := setupTestDB()
 	app := fiber.New()
-	app.Post("/schedule", PostSchedule(db))
+	app.Get("/schedule", GetSchedule(db))
 
-	requestBody := map[string]interface{}{
+	req := newGetScheduleRequest(map[string]string{
 		"option": "latest_n",
-		"limit":  1,
+		"limit":  "1",
 		"queue":  "3_2",
-	}
-	body, _ := json.Marshal(requestBody)
-
-	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
+	})
 
 	resp, err := app.Test(req)
 	assert.NoError(t, err)
-	assert.Equal(t, 200, resp.StatusCode)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 	bodyBytes, _ := io.ReadAll(resp.Body)
 	var responseBody []map[string]interface{}
@@ -232,24 +221,20 @@ func TestPostSchedule_QueueFilter_WithLatestN(t *testing.T) {
 	assert.NotContains(t, schedule, "4_1")
 }
 
-func TestPostSchedule_QueueFilter_WithByDate(t *testing.T) {
+func TestGetSchedule_QueueFilter_WithByDate(t *testing.T) {
 	db := setupTestDB()
 	app := fiber.New()
-	app.Post("/schedule", PostSchedule(db))
+	app.Get("/schedule", GetSchedule(db))
 
-	requestBody := map[string]interface{}{
+	req := newGetScheduleRequest(map[string]string{
 		"option": "by_date",
 		"date":   time.Now().Format("2006-01-02"),
 		"queue":  "3_2",
-	}
-	body, _ := json.Marshal(requestBody)
-
-	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
+	})
 
 	resp, err := app.Test(req)
 	assert.NoError(t, err)
-	assert.Equal(t, 200, resp.StatusCode)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 	bodyBytes, _ := io.ReadAll(resp.Body)
 	var responseBody []map[string]interface{}
@@ -264,22 +249,18 @@ func TestPostSchedule_QueueFilter_WithByDate(t *testing.T) {
 	}
 }
 
-func TestPostSchedule_ScheduleDateField(t *testing.T) {
+func TestGetSchedule_ScheduleDateField(t *testing.T) {
 	db := setupTestDB()
 	app := fiber.New()
-	app.Post("/schedule", PostSchedule(db))
+	app.Get("/schedule", GetSchedule(db))
 
-	requestBody := map[string]interface{}{
+	req := newGetScheduleRequest(map[string]string{
 		"option": "all",
-	}
-	body, _ := json.Marshal(requestBody)
-
-	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
+	})
 
 	resp, err := app.Test(req)
 	assert.NoError(t, err)
-	assert.Equal(t, 200, resp.StatusCode)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 	bodyBytes, _ := io.ReadAll(resp.Body)
 	var responseBody []map[string]interface{}
@@ -311,53 +292,53 @@ func TestPostSchedule_ScheduleDateField(t *testing.T) {
 	assert.Equal(t, "", scheduleWithoutDate["schedule_date"])
 }
 
-func TestPostSchedule_ScheduleDateField_AllOptions(t *testing.T) {
+func TestGetSchedule_ScheduleDateField_AllOptions(t *testing.T) {
 	db := setupTestDB()
 	app := fiber.New()
-	app.Post("/schedule", PostSchedule(db))
+	app.Get("/schedule", GetSchedule(db))
 
 	testCases := []struct {
-		name        string
-		requestBody map[string]interface{}
+		name   string
+		params map[string]string
 	}{
 		{
 			name: "All_NoQueue",
-			requestBody: map[string]interface{}{
+			params: map[string]string{
 				"option": "all",
 			},
 		},
 		{
 			name: "All_WithQueue",
-			requestBody: map[string]interface{}{
+			params: map[string]string{
 				"option": "all",
 				"queue":  "3_2",
 			},
 		},
 		{
 			name: "LatestN_NoQueue",
-			requestBody: map[string]interface{}{
+			params: map[string]string{
 				"option": "latest_n",
-				"limit":  1,
+				"limit":  "1",
 			},
 		},
 		{
 			name: "LatestN_WithQueue",
-			requestBody: map[string]interface{}{
+			params: map[string]string{
 				"option": "latest_n",
-				"limit":  1,
+				"limit":  "1",
 				"queue":  "3_2",
 			},
 		},
 		{
 			name: "ByDate_NoQueue",
-			requestBody: map[string]interface{}{
+			params: map[string]string{
 				"option": "by_date",
 				"date":   time.Now().Format("2006-01-02"),
 			},
 		},
 		{
 			name: "ByDate_WithQueue",
-			requestBody: map[string]interface{}{
+			params: map[string]string{
 				"option": "by_date",
 				"date":   time.Now().Format("2006-01-02"),
 				"queue":  "3_2",
@@ -367,14 +348,11 @@ func TestPostSchedule_ScheduleDateField_AllOptions(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			body, _ := json.Marshal(tc.requestBody)
-
-			req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(body))
-			req.Header.Set("Content-Type", "application/json")
+			req := newGetScheduleRequest(tc.params)
 
 			resp, err := app.Test(req)
 			assert.NoError(t, err)
-			assert.Equal(t, 200, resp.StatusCode)
+			assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 			bodyBytes, _ := io.ReadAll(resp.Body)
 			var responseBody []map[string]interface{}
@@ -391,23 +369,19 @@ func TestPostSchedule_ScheduleDateField_AllOptions(t *testing.T) {
 	}
 }
 
-func TestPostSchedule_MultipleQueues_Success(t *testing.T) {
+func TestGetSchedule_MultipleQueues_Success(t *testing.T) {
 	db := setupTestDB()
 	app := fiber.New()
-	app.Post("/schedule", PostSchedule(db))
+	app.Get("/schedule", GetSchedule(db))
 
-	requestBody := map[string]interface{}{
+	req := newGetScheduleRequest(map[string]string{
 		"option": "all",
 		"queue":  "4_1, 3_1",
-	}
-	body, _ := json.Marshal(requestBody)
-
-	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
+	})
 
 	resp, err := app.Test(req)
 	assert.NoError(t, err)
-	assert.Equal(t, 200, resp.StatusCode)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 	bodyBytes, _ := io.ReadAll(resp.Body)
 	var responseBody []map[string]interface{}
@@ -449,23 +423,19 @@ func TestPostSchedule_MultipleQueues_Success(t *testing.T) {
 	}
 }
 
-func TestPostSchedule_MultipleQueues_NoSpaces(t *testing.T) {
+func TestGetSchedule_MultipleQueues_NoSpaces(t *testing.T) {
 	db := setupTestDB()
 	app := fiber.New()
-	app.Post("/schedule", PostSchedule(db))
+	app.Get("/schedule", GetSchedule(db))
 
-	requestBody := map[string]interface{}{
+	req := newGetScheduleRequest(map[string]string{
 		"option": "all",
 		"queue":  "4_1,3_1,2_2",
-	}
-	body, _ := json.Marshal(requestBody)
-
-	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
+	})
 
 	resp, err := app.Test(req)
 	assert.NoError(t, err)
-	assert.Equal(t, 200, resp.StatusCode)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 	bodyBytes, _ := io.ReadAll(resp.Body)
 	var responseBody []map[string]interface{}
@@ -495,23 +465,19 @@ func TestPostSchedule_MultipleQueues_NoSpaces(t *testing.T) {
 	}
 }
 
-func TestPostSchedule_MultipleQueues_WithDuplicates(t *testing.T) {
+func TestGetSchedule_MultipleQueues_WithDuplicates(t *testing.T) {
 	db := setupTestDB()
 	app := fiber.New()
-	app.Post("/schedule", PostSchedule(db))
+	app.Get("/schedule", GetSchedule(db))
 
-	requestBody := map[string]interface{}{
+	req := newGetScheduleRequest(map[string]string{
 		"option": "all",
 		"queue":  "3_1, 4_1, 3_1",
-	}
-	body, _ := json.Marshal(requestBody)
-
-	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
+	})
 
 	resp, err := app.Test(req)
 	assert.NoError(t, err)
-	assert.Equal(t, 200, resp.StatusCode)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 	bodyBytes, _ := io.ReadAll(resp.Body)
 	var responseBody []map[string]interface{}
@@ -544,10 +510,10 @@ func TestPostSchedule_MultipleQueues_WithDuplicates(t *testing.T) {
 	}
 }
 
-func TestPostSchedule_MultipleQueues_InvalidQueue(t *testing.T) {
+func TestGetSchedule_MultipleQueues_InvalidQueue(t *testing.T) {
 	db := setupTestDB()
 	app := fiber.New()
-	app.Post("/schedule", PostSchedule(db))
+	app.Get("/schedule", GetSchedule(db))
 
 	testCases := []struct {
 		name  string
@@ -573,14 +539,10 @@ func TestPostSchedule_MultipleQueues_InvalidQueue(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			requestBody := map[string]interface{}{
+			req := newGetScheduleRequest(map[string]string{
 				"option": "all",
 				"queue":  tc.queue,
-			}
-			body, _ := json.Marshal(requestBody)
-
-			req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(body))
-			req.Header.Set("Content-Type", "application/json")
+			})
 
 			resp, err := app.Test(req)
 			assert.NoError(t, err)
@@ -600,24 +562,20 @@ func TestPostSchedule_MultipleQueues_InvalidQueue(t *testing.T) {
 	}
 }
 
-func TestPostSchedule_MultipleQueues_WithLatestN(t *testing.T) {
+func TestGetSchedule_MultipleQueues_WithLatestN(t *testing.T) {
 	db := setupTestDB()
 	app := fiber.New()
-	app.Post("/schedule", PostSchedule(db))
+	app.Get("/schedule", GetSchedule(db))
 
-	requestBody := map[string]interface{}{
+	req := newGetScheduleRequest(map[string]string{
 		"option": "latest_n",
-		"limit":  1,
+		"limit":  "1",
 		"queue":  "3_2, 4_1",
-	}
-	body, _ := json.Marshal(requestBody)
-
-	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
+	})
 
 	resp, err := app.Test(req)
 	assert.NoError(t, err)
-	assert.Equal(t, 200, resp.StatusCode)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 	bodyBytes, _ := io.ReadAll(resp.Body)
 	var responseBody []map[string]interface{}
@@ -643,24 +601,20 @@ func TestPostSchedule_MultipleQueues_WithLatestN(t *testing.T) {
 	assert.NotContains(t, schedule, "1_1")
 }
 
-func TestPostSchedule_MultipleQueues_WithByDate(t *testing.T) {
+func TestGetSchedule_MultipleQueues_WithByDate(t *testing.T) {
 	db := setupTestDB()
 	app := fiber.New()
-	app.Post("/schedule", PostSchedule(db))
+	app.Get("/schedule", GetSchedule(db))
 
-	requestBody := map[string]interface{}{
+	req := newGetScheduleRequest(map[string]string{
 		"option": "by_date",
 		"date":   time.Now().Format("2006-01-02"),
 		"queue":  "3_2, 5_1",
-	}
-	body, _ := json.Marshal(requestBody)
-
-	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
+	})
 
 	resp, err := app.Test(req)
 	assert.NoError(t, err)
-	assert.Equal(t, 200, resp.StatusCode)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 	bodyBytes, _ := io.ReadAll(resp.Body)
 	var responseBody []map[string]interface{}
@@ -683,23 +637,19 @@ func TestPostSchedule_MultipleQueues_WithByDate(t *testing.T) {
 	}
 }
 
-func TestPostSchedule_SingleQueue_BackwardCompatibility(t *testing.T) {
+func TestGetSchedule_SingleQueue_BackwardCompatibility(t *testing.T) {
 	db := setupTestDB()
 	app := fiber.New()
-	app.Post("/schedule", PostSchedule(db))
+	app.Get("/schedule", GetSchedule(db))
 
-	requestBody := map[string]interface{}{
+	req := newGetScheduleRequest(map[string]string{
 		"option": "all",
 		"queue":  "3_2",
-	}
-	body, _ := json.Marshal(requestBody)
-
-	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
+	})
 
 	resp, err := app.Test(req)
 	assert.NoError(t, err)
-	assert.Equal(t, 200, resp.StatusCode)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 	bodyBytes, _ := io.ReadAll(resp.Body)
 	var responseBody []map[string]interface{}
@@ -734,10 +684,10 @@ func TestPostSchedule_SingleQueue_BackwardCompatibility(t *testing.T) {
 	}
 }
 
-func TestPostSchedule_EmptyQueue_ReturnsAllQueues(t *testing.T) {
+func TestGetSchedule_EmptyQueue_ReturnsAllQueues(t *testing.T) {
 	db := setupTestDB()
 	app := fiber.New()
-	app.Post("/schedule", PostSchedule(db))
+	app.Get("/schedule", GetSchedule(db))
 
 	testCases := []struct {
 		name  string
@@ -755,18 +705,14 @@ func TestPostSchedule_EmptyQueue_ReturnsAllQueues(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			requestBody := map[string]interface{}{
+			req := newGetScheduleRequest(map[string]string{
 				"option": "all",
 				"queue":  tc.queue,
-			}
-			body, _ := json.Marshal(requestBody)
-
-			req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(body))
-			req.Header.Set("Content-Type", "application/json")
+			})
 
 			resp, err := app.Test(req)
 			assert.NoError(t, err)
-			assert.Equal(t, 200, resp.StatusCode)
+			assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 			bodyBytes, _ := io.ReadAll(resp.Body)
 			var responseBody []map[string]interface{}
