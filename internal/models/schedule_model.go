@@ -3,11 +3,12 @@ package models
 import "time"
 
 type Schedule struct {
-	ID     uint      `gorm:"primaryKey;autoIncrement" json:"id"`
-	NewsID int       `gorm:"uniqueIndex" json:"news_id"`
-	Title  string    `gorm:"type:text" json:"title"`
-	Date   time.Time `gorm:"not null" json:"date"`
-	Col1_1 string    `gorm:"column:1_1" json:"1_1"`
+	ID           uint      `gorm:"primaryKey;autoIncrement" json:"id"`
+	NewsID       int       `gorm:"uniqueIndex" json:"news_id"`
+	Title        string    `gorm:"type:text" json:"title"`
+	Date         time.Time `gorm:"not null" json:"date"`
+	ScheduleDate string    `gorm:"-" json:"schedule_date"`
+	Col1_1       string    `gorm:"column:1_1" json:"1_1"`
 	Col1_2 string    `gorm:"column:1_2" json:"1_2"`
 	Col2_1 string    `gorm:"column:2_1" json:"2_1"`
 	Col2_2 string    `gorm:"column:2_2" json:"2_2"`
