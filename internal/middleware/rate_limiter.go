@@ -19,6 +19,7 @@ var limiterCache = sync.Map{}
 var skipPaths = map[string]struct{}{
 	"/cherkasyoblenergo/api/generate-api-key": {},
 	"/cherkasyoblenergo/api/update-api-key":   {},
+	"/cherkasyoblenergo/api/api-keys":         {},
 }
 
 func RateLimiter(db *gorm.DB) fiber.Handler {
