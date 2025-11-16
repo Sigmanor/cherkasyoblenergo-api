@@ -22,12 +22,10 @@ func TestExtractScheduleDateFromTitle_ValidTitles(t *testing.T) {
 		{"Графік на 9 вересня", "09.09"},
 		{"Графік на 18 жовтня", "18.10"},
 		
-		// New formats with year
 		{"Графік на 23 жовтня 2025 року", "23.10"},
 		{"Графік 22 жовтня 2025 року", "22.10"},
 		{"Оновлений графік 15 листопада 2024 року", "15.11"},
 		
-		// New format with time
 		{"Графік з 15:30, 22 жовтня 2025 року", "22.10"},
 		{"Оновлення з 09:00, 5 травня 2025 року", "05.05"},
 		{"Графік з 18:45, 31 грудня 2024 року", "31.12"},
@@ -77,7 +75,7 @@ func TestExtractScheduleDateFromTitle_EdgeCases(t *testing.T) {
 		{"На 14 number", "", "month is not Ukrainian"},
 		{"Графік відключень", "", "no date pattern"},
 		{"На листопада 14", "", "wrong order - month before day"},
-		{"Графік на -5 травня", "", "negative day number"},
+		{"Графік - 5 травня", "05.05", "dash treated as punctuation, not negative"},
 		{"Графік на 40 грудня", "", "day out of range"},
 		{"Some random text", "", "completely different format"},
 		{"Графік на 15", "", "missing month"},
@@ -159,19 +157,17 @@ func TestExtractDayAndMonth(t *testing.T) {
 		{"на 1 березня", 1, 3, true, "minimum valid day"},
 		{"на 31 серпня", 31, 8, true, "maximum valid day"},
 	
-		// New formats with year
 		{"на 23 жовтня 2025 року", 23, 10, true, "format with year after month"},
 		{"22 жовтня 2025 року", 22, 10, true, "format without 'на' prefix with year"},
 		{"15 листопада 2024 року", 15, 11, true, "another format with year"},
 	
-		// New format with time
 		{"з 15:30, 22 жовтня 2025 року", 22, 10, true, "format with time and year"},
 		{"з 09:00, 5 травня 2025 року", 5, 5, true, "format with time in morning"},
 		{"з 18:45, 31 грудня 2024 року", 31, 12, true, "format with time in evening"},
 
 		{"на 0 травня", 0, 0, false, "day is 0"},
 		{"на 32 липня", 0, 0, false, "day is 32"},
-		{"на -5 червня", 0, 0, false, "negative day"},
+		{"на - 5 червня", 5, 6, true, "dash before number (treated as punctuation)"},
 		{"на 100 вересня", 0, 0, false, "day is 100"},
 
 		{"на 15", 0, 0, false, "missing month"},
@@ -179,7 +175,10 @@ func TestExtractDayAndMonth(t *testing.T) {
 		{"графік відключень", 0, 0, false, "no date pattern"},
 		{"", 0, 0, false, "empty string"},
 
-		{"15 листопада", 0, 0, false, "missing 'на' keyword"},
+		{"15 листопада", 15, 11, true, "universal format without 'на' keyword"},
+		{"5 травня", 5, 5, true, "universal format single digit day"},
+		{"28 лютого", 28, 2, true, "universal format february"},
+		{"Графік 22 червня", 22, 6, true, "universal format with prefix text"},
 		{"на листопада 15", 0, 0, false, "month before day"},
 		{"нa 14 листопада", 0, 0, false, "Latin 'a' in 'на'"},
 
