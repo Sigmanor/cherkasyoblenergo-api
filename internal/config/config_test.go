@@ -4,9 +4,30 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/spf13/viper"
 )
 
 func TestLoadConfig_Success(t *testing.T) {
+	// Reset viper to clear any previous state
+	viper.Reset()
+
+	// Save and clear environment variables that might interfere with the test
+	envVars := []string{"DB_HOST", "DB_PORT", "DB_USER", "DB_PASSWORD", "DB_NAME", "ADMIN_PASSWORD", "SERVER_PORT"}
+	oldEnv := make(map[string]string)
+	for _, key := range envVars {
+		oldEnv[key] = os.Getenv(key)
+		os.Unsetenv(key)
+	}
+	defer func() {
+		for key, val := range oldEnv {
+			if val != "" {
+				os.Setenv(key, val)
+			}
+		}
+		viper.Reset()
+	}()
+
 	tempDir, err := os.MkdirTemp("", "configtest")
 	if err != nil {
 		t.Fatalf("failed to create temp dir: %v", err)
@@ -55,6 +76,10 @@ SERVER_PORT=8080
 }
 
 func TestLoadConfig_MissingFile(t *testing.T) {
+	// Reset viper to clear any previous state
+	viper.Reset()
+	defer viper.Reset()
+
 	tempDir, err := os.MkdirTemp("", "configtest")
 	if err != nil {
 		t.Fatalf("failed to create temp dir: %v", err)
