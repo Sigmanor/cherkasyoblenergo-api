@@ -9,10 +9,8 @@ import (
 )
 
 func TestLoadConfig_Success(t *testing.T) {
-	// Reset viper to clear any previous state
 	viper.Reset()
 
-	// Save and clear environment variables that might interfere with the test
 	envVars := []string{"DB_HOST", "DB_PORT", "DB_USER", "DB_PASSWORD", "DB_NAME", "ADMIN_PASSWORD", "SERVER_PORT"}
 	oldEnv := make(map[string]string)
 	for _, key := range envVars {
@@ -76,7 +74,6 @@ SERVER_PORT=8080
 }
 
 func TestLoadConfig_MissingFile(t *testing.T) {
-	// Reset viper to clear any previous state
 	viper.Reset()
 	defer viper.Reset()
 

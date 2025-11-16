@@ -390,18 +390,15 @@ func TestGetSchedule_MultipleQueues_Success(t *testing.T) {
 	assert.NotEmpty(t, responseBody)
 
 	for _, schedule := range responseBody {
-		// Verify metadata fields are present
 		assert.Contains(t, schedule, "id")
 		assert.Contains(t, schedule, "news_id")
 		assert.Contains(t, schedule, "title")
 		assert.Contains(t, schedule, "date")
 		assert.Contains(t, schedule, "schedule_date")
 
-		// Verify both queue fields are present
 		assert.Contains(t, schedule, "4_1")
 		assert.Contains(t, schedule, "3_1")
 
-		// Verify both queue values are non-empty strings
 		assert.NotEmpty(t, schedule["4_1"])
 		assert.NotEmpty(t, schedule["3_1"])
 		_, ok1 := schedule["4_1"].(string)
@@ -409,7 +406,6 @@ func TestGetSchedule_MultipleQueues_Success(t *testing.T) {
 		assert.True(t, ok1, "4_1 should be a string")
 		assert.True(t, ok2, "3_1 should be a string")
 
-		// Verify response does NOT contain other queue fields
 		assert.NotContains(t, schedule, "1_1")
 		assert.NotContains(t, schedule, "1_2")
 		assert.NotContains(t, schedule, "2_1")
@@ -444,17 +440,14 @@ func TestGetSchedule_MultipleQueues_NoSpaces(t *testing.T) {
 	assert.NotEmpty(t, responseBody)
 
 	for _, schedule := range responseBody {
-		// Verify all three queues are present
 		assert.Contains(t, schedule, "4_1")
 		assert.Contains(t, schedule, "3_1")
 		assert.Contains(t, schedule, "2_2")
 
-		// Verify values are non-empty
 		assert.NotEmpty(t, schedule["4_1"])
 		assert.NotEmpty(t, schedule["3_1"])
 		assert.NotEmpty(t, schedule["2_2"])
 
-		// Verify order is preserved (check by getting keys from response)
 		keys := make([]string, 0)
 		for key := range schedule {
 			if key == "4_1" || key == "3_1" || key == "2_2" {
@@ -486,15 +479,12 @@ func TestGetSchedule_MultipleQueues_WithDuplicates(t *testing.T) {
 	assert.NotEmpty(t, responseBody)
 
 	for _, schedule := range responseBody {
-		// Verify response contains 3_1 and 4_1 only once each
 		assert.Contains(t, schedule, "3_1")
 		assert.Contains(t, schedule, "4_1")
 
-		// Verify values are non-empty
 		assert.NotEmpty(t, schedule["3_1"])
 		assert.NotEmpty(t, schedule["4_1"])
 
-		// Count queue fields to ensure no duplicates
 		queueCount := 0
 		for key := range schedule {
 			if key == "3_1" || key == "4_1" {
@@ -503,7 +493,6 @@ func TestGetSchedule_MultipleQueues_WithDuplicates(t *testing.T) {
 		}
 		assert.Equal(t, 2, queueCount, "Should have exactly 2 unique queue fields")
 
-		// Verify other queues are not present
 		assert.NotContains(t, schedule, "1_1")
 		assert.NotContains(t, schedule, "2_2")
 		assert.NotContains(t, schedule, "5_1")
@@ -554,7 +543,6 @@ func TestGetSchedule_MultipleQueues_InvalidQueue(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Contains(t, errorResponse, "error")
 
-			// Verify error message mentions the invalid queue
 			errorMsg, ok := errorResponse["error"].(string)
 			assert.True(t, ok)
 			assert.NotEmpty(t, errorMsg)
@@ -582,20 +570,16 @@ func TestGetSchedule_MultipleQueues_WithLatestN(t *testing.T) {
 	err = json.Unmarshal(bodyBytes, &responseBody)
 	assert.NoError(t, err)
 
-	// Verify only 1 record is returned
 	assert.Len(t, responseBody, 1)
 
 	schedule := responseBody[0]
 
-	// Verify both queue fields are present in the single record
 	assert.Contains(t, schedule, "3_2")
 	assert.Contains(t, schedule, "4_1")
 
-	// Verify both values are non-empty
 	assert.NotEmpty(t, schedule["3_2"])
 	assert.NotEmpty(t, schedule["4_1"])
 
-	// Verify other queues are not present
 	assert.NotContains(t, schedule, "3_1")
 	assert.NotContains(t, schedule, "5_1")
 	assert.NotContains(t, schedule, "1_1")
@@ -621,7 +605,6 @@ func TestGetSchedule_MultipleQueues_WithByDate(t *testing.T) {
 	err = json.Unmarshal(bodyBytes, &responseBody)
 	assert.NoError(t, err)
 
-	// Verify filtered by date and contains both specified queues
 	for _, schedule := range responseBody {
 		assert.Contains(t, schedule, "3_2")
 		assert.Contains(t, schedule, "5_1")
@@ -629,7 +612,6 @@ func TestGetSchedule_MultipleQueues_WithByDate(t *testing.T) {
 		assert.NotEmpty(t, schedule["3_2"])
 		assert.NotEmpty(t, schedule["5_1"])
 
-		// Verify other queues are not present
 		assert.NotContains(t, schedule, "3_1")
 		assert.NotContains(t, schedule, "4_1")
 		assert.NotContains(t, schedule, "1_1")
@@ -658,18 +640,15 @@ func TestGetSchedule_SingleQueue_BackwardCompatibility(t *testing.T) {
 	assert.NotEmpty(t, responseBody)
 
 	for _, schedule := range responseBody {
-		// Verify metadata fields are present
 		assert.Contains(t, schedule, "id")
 		assert.Contains(t, schedule, "news_id")
 		assert.Contains(t, schedule, "title")
 		assert.Contains(t, schedule, "date")
 		assert.Contains(t, schedule, "schedule_date")
 
-		// Verify single queue field in response
 		assert.Contains(t, schedule, "3_2")
 		assert.NotEmpty(t, schedule["3_2"])
 
-		// Verify other queues are not present (backward compatibility)
 		assert.NotContains(t, schedule, "3_1")
 		assert.NotContains(t, schedule, "1_1")
 		assert.NotContains(t, schedule, "1_2")
@@ -721,7 +700,6 @@ func TestGetSchedule_EmptyQueue_ReturnsAllQueues(t *testing.T) {
 			assert.NotEmpty(t, responseBody)
 
 			for _, schedule := range responseBody {
-				// Verify all 12 queue fields are returned
 				assert.Contains(t, schedule, "1_1")
 				assert.Contains(t, schedule, "1_2")
 				assert.Contains(t, schedule, "2_1")
@@ -735,7 +713,6 @@ func TestGetSchedule_EmptyQueue_ReturnsAllQueues(t *testing.T) {
 				assert.Contains(t, schedule, "6_1")
 				assert.Contains(t, schedule, "6_2")
 
-				// Verify all values are non-empty
 				assert.NotEmpty(t, schedule["1_1"])
 				assert.NotEmpty(t, schedule["1_2"])
 				assert.NotEmpty(t, schedule["2_1"])
