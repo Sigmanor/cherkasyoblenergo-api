@@ -1,3 +1,10 @@
+## [1.8.2](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.8.1...v1.8.2) (2025-11-16)
+
+
+### Bug Fixes
+
+* **utils:** harden cyrillic date parsing ([acdca95](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/acdca952d1c579b2d6569dc2289a42f2f4081685))
+
 ## [1.8.1](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.8.0...v1.8.1) (2025-11-16)
 
 
