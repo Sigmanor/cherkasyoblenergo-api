@@ -41,31 +41,24 @@ type ScheduleFilter struct {
 }
 
 func parseAndValidateQueues(queueStr string) ([]string, error) {
-	// Return empty slice if queueStr is empty or whitespace-only
 	if strings.TrimSpace(queueStr) == "" {
 		return []string{}, nil
 	}
 
-	// Split by commas
 	tokens := strings.Split(queueStr, ",")
 
-	// Regex pattern for validation
 	queuePattern := regexp.MustCompile(`^[1-6]_[1-2]$`)
 
-	// Track seen queues for deduplication
 	seen := make(map[string]bool)
 	result := []string{}
 
 	for _, token := range tokens {
-		// Trim whitespace
 		queue := strings.TrimSpace(token)
 
-		// Validate against regex
 		if !queuePattern.MatchString(queue) {
-			return nil, fmt.Errorf("Invalid queue value: '%s'. Each queue must match format X_Y where X is 1-6 and Y is 1-2", queue)
+			return nil, fmt.Errorf("invalid queue value: '%s'. Each queue must match format X_Y where X is 1-6 and Y is 1-2", queue)
 		}
 
-		// Deduplicate while preserving order
 		if !seen[queue] {
 			seen[queue] = true
 			result = append(result, queue)
@@ -117,7 +110,6 @@ func buildFilteredResponse(schedules []Schedule, queueNames []string) []map[stri
 			"schedule_date": schedule.ScheduleDate,
 		}
 
-		// Add each queue value to the result map
 		for _, queueName := range queueNames {
 			resultMap[queueName] = getQueueValue(&schedule, queueName)
 		}
