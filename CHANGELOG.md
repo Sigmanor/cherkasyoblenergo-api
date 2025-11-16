@@ -1,3 +1,11 @@
+## [1.8.1](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.8.0...v1.8.1) (2025-11-16)
+
+
+### Bug Fixes
+
+* **utils:** extend date extractor patterns ([8989d3e](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/8989d3eb50f68070a16e5599923999f4b2c0880e))
+* **utils:** remove overly broad date regex ([64c64f2](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/64c64f25d1069eab71cf2076eadbd8ffe08f08d5))
+
 # [1.8.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.7.0...v1.8.0) (2025-11-14)
 
 
