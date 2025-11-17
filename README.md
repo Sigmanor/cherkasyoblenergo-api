@@ -22,14 +22,11 @@ Unofficial API service for retrieving power outage schedules from [cherkasyoblen
   - [✨ Key Features](#-key-features)
   - [🚀 Installation](#-installation)
     - [Prerequisites](#prerequisites)
-    - [Database Setup](#database-setup)
     - [Setup](#setup)
-  - [� Development](#-development)
     - [Building](#building)
   - [🔑 API Documentation](#-api-documentation)
     - [Base URL](#base-url)
     - [Available Endpoints](#available-endpoints)
-  - [🤝 Contributing](#-contributing)
   - [🚦 Running Tests](#-running-tests)
   - [⚡ Free API Access](#-free-api-access)
 
@@ -48,44 +45,44 @@ Unofficial API service for retrieving power outage schedules from [cherkasyoblen
 - Go 1.23 or higher
 - PostgreSQL 17
 
-### Database Setup
-
-The application requires PostgreSQL 17. Install it following the [official PostgreSQL installation guide](https://www.postgresql.org/download/).
-
-The application will automatically create the required database on first run. You only need to ensure PostgreSQL is running and accessible with the credentials specified in your `.env` file.
-
 ### Setup
 
-1. Clone the repository:
+1. **Install PostgreSQL 17**
 
-```bash
-git clone https://github.com/Sigmanor/cherkasyoblenergo-api.git
-cd cherkasyoblenergo-api
-```
+   Follow the [official PostgreSQL installation guide](https://www.postgresql.org/download/) to install PostgreSQL on your system.
 
-2. Create `.env` file with required configurations:
+2. **Clone the repository**
 
-```properties
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=root
-DB_PASSWORD=your_strong_db_password
-DB_NAME=myCoolDB
-ADMIN_PASSWORD=your_strong_admin_password
-SERVER_PORT=3000
-```
+   ```bash
+   git clone https://github.com/Sigmanor/cherkasyoblenergo-api.git
+   cd cherkasyoblenergo-api
+   ```
 
-3. Run the application:
+3. **Configure environment variables**
 
-```bash
-go run ./cmd/server/main.go
-```
+   Create a `.env` file in the root directory:
 
-## 💻 Development
+   ```properties
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_USER=root
+   DB_PASSWORD=your_strong_db_password
+   DB_NAME=myCoolDB
+   ADMIN_PASSWORD=your_strong_admin_password
+   SERVER_PORT=3000
+   ```
+
+4. **Run the application**
+
+   ```bash
+   go run ./cmd/server/main.go
+   ```
+
+   The application will automatically create the required database on first run.
 
 ### Building
 
-To build the application:
+To build the application for production:
 
 ```bash
 go build -o cherkasyoblenergo_api ./cmd/server/main.go
@@ -107,14 +104,6 @@ go build -o cherkasyoblenergo_api ./cmd/server/main.go
 - `DELETE /api-keys` - Delete API key (admin only)
 
 [Detailed API Documentation](API.md)
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
 
 ## 🚦 Running Tests
 
