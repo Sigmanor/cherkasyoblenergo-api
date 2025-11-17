@@ -1,3 +1,10 @@
+## [1.8.3](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.8.2...v1.8.3) (2025-11-17)
+
+
+### Bug Fixes
+
+* **api:** raise default rate limit to 6 ([5e1ab42](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/5e1ab42b0c22cb24de0e79786d220d3f085cc13c))
+
 ## [1.8.2](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.8.1...v1.8.2) (2025-11-16)
 
 
