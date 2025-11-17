@@ -148,11 +148,28 @@ func containsSchedulePatterns(htmlBody string) bool {
 	return re.MatchString(htmlBody)
 }
 
+func normalizeSpaces(text string) string {
+	text = strings.ReplaceAll(text, "\u00a0", " ")
+	text = strings.ReplaceAll(text, "\u202f", " ")
+	text = strings.TrimSpace(text)
+	// Collapse multiple spaces into one to make regexp matching predictable.
+	for strings.Contains(text, "  ") {
+		text = strings.ReplaceAll(text, "  ", " ")
+	}
+	return text
+}
+
+func normalizeTimeRanges(value string) string {
+	value = normalizeSpaces(value)
+	value = strings.TrimRight(value, ",.;")
+	return strings.TrimSpace(value)
+}
+
 func parseScheduleFromParagraphs(htmlBody string) (models.Schedule, bool) {
 	var data models.Schedule
 	found := false
 
-	re := regexp.MustCompile(`^(\d)\.(\d)\s+(.+)`)
+	re := regexp.MustCompile(`^(\d)\.(\d)\.?\s*(.+)`)
 
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(htmlBody))
 	if err != nil {
@@ -162,7 +179,7 @@ func parseScheduleFromParagraphs(htmlBody string) (models.Schedule, bool) {
 
 	paragraphCount := 0
 	doc.Find("p").Each(func(i int, s *goquery.Selection) {
-		text := strings.TrimSpace(s.Text())
+		text := normalizeSpaces(s.Text())
 		paragraphCount++
 
 		if text == "" {
@@ -176,7 +193,7 @@ func parseScheduleFromParagraphs(htmlBody string) (models.Schedule, bool) {
 
 		mainQueue, err1 := strconv.Atoi(matches[1])
 		subQueue, err2 := strconv.Atoi(matches[2])
-		timeRanges := strings.TrimSpace(matches[3])
+		timeRanges := normalizeTimeRanges(matches[3])
 
 		if err1 != nil || err2 != nil || mainQueue < 1 || mainQueue > 6 || subQueue < 1 || subQueue > 2 {
 			log.Printf("Invalid queue values: mainQueue=%d, subQueue=%d", mainQueue, subQueue)
