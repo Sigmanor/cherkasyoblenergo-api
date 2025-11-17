@@ -115,4 +115,4 @@ go test ./...
 
 ## ⚡ Free API Access
 
-Since I host the app for my own needs, I can provide you with limited access (2 req/min) to the API for free. Contact via [email](mailto:dock-brunt-rarity@duck.com) for access.
+Since I host the app for my own needs, I can provide you with limited access (6 req/min) to the API for free. Contact via [email](mailto:dock-brunt-rarity@duck.com) for access.
