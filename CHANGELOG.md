@@ -1,3 +1,10 @@
+## [1.8.4](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.8.3...v1.8.4) (2025-11-17)
+
+
+### Bug Fixes
+
+* **parser:** normalize schedule paragraphs ([def3d4a](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/def3d4acad22ade3ea29688ef96555d43be50f4a))
+
 ## [1.8.3](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.8.2...v1.8.3) (2025-11-17)
 
 
