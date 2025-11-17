@@ -25,7 +25,7 @@ func CreateAPIKey(db *gorm.DB, cfg config.Config) fiber.Handler {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 		}
 
-		rateLimit := 2
+		rateLimit := 6
 		if req.RateLimit != nil {
 			if *req.RateLimit <= 0 {
 				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "rate_limit must be greater than zero"})
