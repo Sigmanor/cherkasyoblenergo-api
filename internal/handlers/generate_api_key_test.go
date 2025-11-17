@@ -80,8 +80,8 @@ func TestCreateAPIKey_DefaultRateLimit(t *testing.T) {
 	var result map[string]any
 	json.NewDecoder(resp.Body).Decode(&result)
 	if rateLimit, ok := result["rate_limit"]; ok {
-		if int(rateLimit.(float64)) != 2 {
-			t.Errorf("Expected default rate_limit 2, got %v", rateLimit)
+		if int(rateLimit.(float64)) != 6 {
+			t.Errorf("Expected default rate_limit 6, got %v", rateLimit)
 		}
 	} else {
 		t.Error("Expected rate_limit in response")
