@@ -119,7 +119,7 @@ X-API-Key: YOUR_API_KEY
 ```json
 {
   "admin_password": "YOUR_ADMIN_PASSWORD",
-  "rate_limit": 2 // Опціонально: запитів на хвилину (за замовчуванням 2, має бути > 0)
+  "rate_limit": 6 // Опціонально: запитів на хвилину (за замовчуванням 6, має бути > 0)
 }
 ```
 
@@ -128,7 +128,7 @@ X-API-Key: YOUR_API_KEY
 ```json
 {
   "api_key": "ggj7d1slfkm",
-  "rate_limit": 2
+  "rate_limit": 6
 }
 ```
 

@@ -117,7 +117,7 @@ Generate a new API key with optional rate limiting. Provide the admin password i
 ```json
 {
   "admin_password": "YOUR_ADMIN_PASSWORD",
-  "rate_limit": 2 // Optional: requests per minute (default: 2, must be > 0)
+  "rate_limit": 6 // Optional: requests per minute (default: 6, must be > 0)
 }
 ```
 
@@ -126,7 +126,7 @@ Generate a new API key with optional rate limiting. Provide the admin password i
 ```json
 {
   "api_key": "ggj7d1slfkm",
-  "rate_limit": 2
+  "rate_limit": 6
 }
 ```
 
