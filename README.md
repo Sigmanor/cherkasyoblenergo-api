@@ -22,13 +22,13 @@ Unofficial API service for retrieving power outage schedules from [cherkasyoblen
   - [✨ Key Features](#-key-features)
   - [🚀 Installation](#-installation)
     - [Prerequisites](#prerequisites)
+    - [Database Setup](#database-setup)
     - [Setup](#setup)
+  - [� Development](#-development)
+    - [Building](#building)
   - [🔑 API Documentation](#-api-documentation)
     - [Base URL](#base-url)
     - [Available Endpoints](#available-endpoints)
-  - [💻 Development](#-development)
-    - [Requirements](#requirements)
-    - [Local Development](#local-development)
   - [🤝 Contributing](#-contributing)
   - [🚦 Running Tests](#-running-tests)
   - [⚡ Free API Access](#-free-api-access)
@@ -40,15 +40,19 @@ Unofficial API service for retrieving power outage schedules from [cherkasyoblen
 - RESTful API interface
 - Rate limiting support
 - API key authentication
-- Docker deployment support
 
 ## 🚀 Installation
 
 ### Prerequisites
 
-- [Docker](https://docs.docker.com/engine/install/)
-- [Docker Compose](https://docs.docker.com/compose/install/)
-- PostgreSQL 17 (only if running without Docker)
+- Go 1.23 or higher
+- PostgreSQL 17
+
+### Database Setup
+
+The application requires PostgreSQL 17. Install it following the [official PostgreSQL installation guide](https://www.postgresql.org/download/).
+
+The application will automatically create the required database on first run. You only need to ensure PostgreSQL is running and accessible with the credentials specified in your `.env` file.
 
 ### Setup
 
@@ -71,22 +75,20 @@ ADMIN_PASSWORD=your_strong_admin_password
 SERVER_PORT=3000
 ```
 
-3. Choose deployment method:
-
-**Full Docker deployment (with PostgreSQL):**
+3. Run the application:
 
 ```bash
-# Create persistent volume for PostgreSQL
-docker volume create postgresql_data
-
-# Deploy both app and database
-docker compose -f docker-compose.app.yml -f docker-compose.db.yml up -d --build
+go run ./cmd/server/main.go
 ```
 
-**App-only deployment (for existing PostgreSQL):**
+## 💻 Development
+
+### Building
+
+To build the application:
 
 ```bash
-docker compose -f docker-compose.app.yml up -d --build
+go build -o cherkasyoblenergo_api ./cmd/server/main.go
 ```
 
 ## 🔑 API Documentation
@@ -105,24 +107,6 @@ docker compose -f docker-compose.app.yml up -d --build
 - `DELETE /api-keys` - Delete API key (admin only)
 
 [Detailed API Documentation](API.md)
-
-## 💻 Development
-
-### Requirements
-
-- Go 1.23 or higher
-- PostgreSQL 17
-- Docker and Docker Compose (for containerized deployment)
-
-### Local Development
-
-```bash
-# Run locally
-go run ./cmd/server/main.go
-
-# Build
-go build -o cherkasyoblenergo_api ./cmd/server/main.go
-```
 
 ## 🤝 Contributing
 
