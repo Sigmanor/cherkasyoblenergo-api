@@ -1,4 +1,4 @@
-# Cherkasyoblenergo API Documentation [![EN](https://img.shields.io/badge/English-0e7837.svg)](API.md) [![UA](https://img.shields.io/badge/Ukrainian-c9c9c9.svg)](API_UA.md)
+# API Documentation [![EN](https://img.shields.io/badge/English-0e7837.svg)](API.md) [![UA](https://img.shields.io/badge/Ukrainian-c9c9c9.svg)](API_UA.md)
 
 ## Base URL
 
