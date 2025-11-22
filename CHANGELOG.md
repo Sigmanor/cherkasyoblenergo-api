@@ -1,3 +1,10 @@
+## [1.8.5](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.8.4...v1.8.5) (2025-11-22)
+
+
+### Bug Fixes
+
+* **parser:** skip news without schedule data ([5668b61](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/5668b61a754950dfeee6a49db6cdcbaf8d753524))
+
 ## [1.8.4](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.8.3...v1.8.4) (2025-11-17)
 
 
