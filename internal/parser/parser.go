@@ -117,6 +117,10 @@ func FetchAndStoreNews(db *gorm.DB, newsURL string) {
 			Where("news_id = ?", news.ID).First(&existing).Error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			sch := parseScheduleData(news.HtmlBody)
+			if !hasScheduleData(sch) {
+				log.Printf("Skipping news ID %d because no schedule data was parsed", news.ID)
+				continue
+			}
 			sch.NewsID = news.ID
 			sch.Title = news.Title
 			sch.Date = news.Date
@@ -178,13 +182,20 @@ func parseScheduleFromParagraphs(htmlBody string) (models.Schedule, bool) {
 	}
 
 	paragraphCount := 0
-	doc.Find("p").Each(func(i int, s *goquery.Selection) {
+	seen := make(map[string]struct{})
+
+	doc.Find("p, div").Each(func(i int, s *goquery.Selection) {
 		text := normalizeSpaces(s.Text())
-		paragraphCount++
 
 		if text == "" {
 			return
 		}
+
+		if _, exists := seen[text]; exists {
+			return
+		}
+		seen[text] = struct{}{}
+		paragraphCount++
 
 		matches := re.FindStringSubmatch(text)
 		if matches == nil {
@@ -207,6 +218,19 @@ func parseScheduleFromParagraphs(htmlBody string) (models.Schedule, bool) {
 
 	log.Printf("parseScheduleFromParagraphs: checked %d paragraphs, found=%v", paragraphCount, found)
 	return data, found
+}
+
+func hasScheduleData(s models.Schedule) bool {
+	cols := []string{
+		s.Col1_1, s.Col1_2, s.Col2_1, s.Col2_2, s.Col3_1, s.Col3_2,
+		s.Col4_1, s.Col4_2, s.Col5_1, s.Col5_2, s.Col6_1, s.Col6_2,
+	}
+	for _, c := range cols {
+		if strings.TrimSpace(c) != "" {
+			return true
+		}
+	}
+	return false
 }
 
 func parseScheduleData(htmlBody string) models.Schedule {
