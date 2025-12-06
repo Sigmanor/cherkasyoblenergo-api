@@ -145,6 +145,34 @@ func handleScheduleRequest(c *fiber.Ctx, db *gorm.DB, filter ScheduleFilter) err
 		if err := query.Where("DATE(date) = ?", date.Format("2006-01-02")).Find(&schedules).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve records by date"})
 		}
+	case "by_schedule_date":
+		if filter.Date == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Date must be specified in YYYY-MM-DD format"})
+		}
+		if _, err := time.Parse("2006-01-02", filter.Date); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid date format, expected YYYY-MM-DD"})
+		}
+		if filter.Limit < 0 {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid limit value, it must be greater than or equal to zero"})
+		}
+		
+		// Fetch all schedules ordered by date desc
+		var allSchedules []Schedule
+		if err := query.Order("date desc").Find(&allSchedules).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve records"})
+		}
+		
+		// Compute schedule_date and filter by matching date
+		for i := range allSchedules {
+			allSchedules[i].ScheduleDate = utils.ExtractScheduleDateFromTitle(allSchedules[i].Title)
+			if allSchedules[i].ScheduleDate == filter.Date {
+				schedules = append(schedules, allSchedules[i])
+				// Apply limit if specified
+				if filter.Limit > 0 && len(schedules) >= filter.Limit {
+					break
+				}
+			}
+		}
 	default:
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid option parameter value"})
 	}
