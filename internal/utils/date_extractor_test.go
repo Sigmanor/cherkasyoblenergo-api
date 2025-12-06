@@ -1,91 +1,117 @@
 package utils
 
 import (
+	"fmt"
 	"testing"
+	"time"
 )
+
+// Helper function to generate expected date in YYYY-MM-DD format
+// Uses same logic as ExtractScheduleDateFromTitle for year calculation
+func expectedScheduleDate(day, month int) string {
+	now := time.Now()
+	year := now.Year()
+	if month > int(now.Month()) {
+		year--
+	}
+	return fmt.Sprintf("%d-%02d-%02d", year, month, day)
+}
 
 func TestExtractScheduleDateFromTitle_ValidTitles(t *testing.T) {
 	tests := []struct {
-		title    string
-		expected string
+		title string
+		day   int
+		month int
 	}{
-		{"Графік погодинних відключень на 14 листопада", "14.11"},
-		{"Графік на 5 травня", "05.05"},
-		{"Графік на 28 лютого", "28.02"},
-		{"Графік відключень на 1 січня", "01.01"},
-		{"Графік на 15 грудня", "15.12"},
-		{"Оновлений графік на 3 березня", "03.03"},
-		{"Графік на 10 квітня", "10.04"},
-		{"Графік на 22 червня", "22.06"},
-		{"Графік на 7 липня", "07.07"},
-		{"Графік на 31 серпня", "31.08"},
-		{"Графік на 9 вересня", "09.09"},
-		{"Графік на 18 жовтня", "18.10"},
-		
-		{"Графік на 23 жовтня 2025 року", "23.10"},
-		{"Графік 22 жовтня 2025 року", "22.10"},
-		{"Оновлений графік 15 листопада 2024 року", "15.11"},
-		
-		{"Графік з 15:30, 22 жовтня 2025 року", "22.10"},
-		{"Оновлення з 09:00, 5 травня 2025 року", "05.05"},
-		{"Графік з 18:45, 31 грудня 2024 року", "31.12"},
+		{"Графік погодинних відключень на 14 листопада", 14, 11},
+		{"Графік на 5 травня", 5, 5},
+		{"Графік на 28 лютого", 28, 2},
+		{"Графік відключень на 1 січня", 1, 1},
+		{"Графік на 15 грудня", 15, 12},
+		{"Оновлений графік на 3 березня", 3, 3},
+		{"Графік на 10 квітня", 10, 4},
+		{"Графік на 22 червня", 22, 6},
+		{"Графік на 7 липня", 7, 7},
+		{"Графік на 31 серпня", 31, 8},
+		{"Графік на 9 вересня", 9, 9},
+		{"Графік на 18 жовтня", 18, 10},
+
+		{"Графік на 23 жовтня 2025 року", 23, 10},
+		{"Графік 22 жовтня 2025 року", 22, 10},
+		{"Оновлений графік 15 листопада 2024 року", 15, 11},
+
+		{"Графік з 15:30, 22 жовтня 2025 року", 22, 10},
+		{"Оновлення з 09:00, 5 травня 2025 року", 5, 5},
+		{"Графік з 18:45, 31 грудня 2024 року", 31, 12},
 	}
 
 	for _, tt := range tests {
+		expected := expectedScheduleDate(tt.day, tt.month)
 		got := ExtractScheduleDateFromTitle(tt.title)
-		if got != tt.expected {
-			t.Errorf("ExtractScheduleDateFromTitle(%q) = %q, want %q", tt.title, got, tt.expected)
+		if got != expected {
+			t.Errorf("ExtractScheduleDateFromTitle(%q) = %q, want %q", tt.title, got, expected)
 		}
 	}
 }
 
 func TestExtractScheduleDateFromTitle_Typos(t *testing.T) {
 	tests := []struct {
-		title    string
-		expected string
-		desc     string
+		title string
+		day   int
+		month int
+		desc  string
 	}{
-		{"Графік на 14 листопаде", "14.11", "typo in month ending"},
-		{"Графік на 5 листопда", "05.11", "missing letter in month"},
-		{"Графік на 28 листопадаа", "28.11", "extra letter in month"},
-		{"Графік на 15 груня", "15.12", "missing letter д"},
-		{"Графік на 7 травна", "07.05", "typo in month ending"},
-		{"Графік на 31 серпна", "31.08", "typo in august ending"},
+		{"Графік на 14 листопаде", 14, 11, "typo in month ending"},
+		{"Графік на 5 листопда", 5, 11, "missing letter in month"},
+		{"Графік на 28 листопадаа", 28, 11, "extra letter in month"},
+		{"Графік на 15 груня", 15, 12, "missing letter д"},
+		{"Графік на 7 травна", 7, 5, "typo in month ending"},
+		{"Графік на 31 серпна", 31, 8, "typo in august ending"},
 	}
 
 	for _, tt := range tests {
+		expected := expectedScheduleDate(tt.day, tt.month)
 		got := ExtractScheduleDateFromTitle(tt.title)
-		if got != tt.expected {
-			t.Errorf("%s: ExtractScheduleDateFromTitle(%q) = %q, want %q", tt.desc, tt.title, got, tt.expected)
+		if got != expected {
+			t.Errorf("%s: ExtractScheduleDateFromTitle(%q) = %q, want %q", tt.desc, tt.title, got, expected)
 		}
 	}
 }
 
 func TestExtractScheduleDateFromTitle_EdgeCases(t *testing.T) {
 	tests := []struct {
-		title    string
-		expected string
-		desc     string
+		title   string
+		day     int
+		month   int
+		isEmpty bool
+		desc    string
 	}{
-		{"Графік без дати", "", "title without date"},
-		{"Графік на 0 листопада", "", "invalid day 0"},
-		{"Графік на 32 листопада", "", "invalid day 32"},
-		{"Графік на 15 unknownmonth", "", "unrecognizable month name"},
-		{"", "", "empty string"},
-		{"На 14 number", "", "month is not Ukrainian"},
-		{"Графік відключень", "", "no date pattern"},
-		{"На листопада 14", "", "wrong order - month before day"},
-		{"Графік - 5 травня", "05.05", "dash treated as punctuation, not negative"},
-		{"Графік на 40 грудня", "", "day out of range"},
-		{"Some random text", "", "completely different format"},
-		{"Графік на 15", "", "missing month"},
-		{"Графік листопада", "", "missing day"},
+		{"Графік без дати", 0, 0, true, "title without date"},
+		{"Графік на 0 листопада", 0, 0, true, "invalid day 0"},
+		{"Графік на 32 листопада", 0, 0, true, "invalid day 32"},
+		{"Графік на 15 unknownmonth", 0, 0, true, "unrecognizable month name"},
+		{"", 0, 0, true, "empty string"},
+		{"На 14 number", 0, 0, true, "month is not Ukrainian"},
+		{"Графік відключень", 0, 0, true, "no date pattern"},
+		{"На листопада 14", 0, 0, true, "wrong order - month before day"},
+		{"Графік - 5 травня", 5, 5, false, "dash treated as punctuation, not negative"},
+		{"Графік на 40 грудня", 0, 0, true, "day out of range"},
+		{"Some random text", 0, 0, true, "completely different format"},
+		{"Графік на 15", 0, 0, true, "missing month"},
+		{"Графік листопада", 0, 0, true, "missing day"},
 	}
 
 	for _, tt := range tests {
 		got := ExtractScheduleDateFromTitle(tt.title)
-		if got != tt.expected {
-			t.Errorf("%s: ExtractScheduleDateFromTitle(%q) = %q, want %q", tt.desc, tt.title, got, tt.expected)
+		if tt.isEmpty {
+			if got != "" {
+				t.Errorf("%s: ExtractScheduleDateFromTitle(%q) = %q, want empty string", tt.desc, tt.title, got)
+			}
+		} else {
+			expected := expectedScheduleDate(tt.day, tt.month)
+			if got != expected {
+				t.Errorf("%s: ExtractScheduleDateFromTitle(%q) = %q, want %q", tt.desc, tt.title, got, expected)
+			}
 		}
 	}
 }
@@ -142,25 +168,25 @@ func TestParseUkrainianMonth(t *testing.T) {
 
 func TestExtractDayAndMonth(t *testing.T) {
 	tests := []struct {
-		title        string
-		expectedDay  int
+		title         string
+		expectedDay   int
 		expectedMonth int
-		shouldOk     bool
-		desc         string
+		shouldOk      bool
+		desc          string
 	}{
 		{"Графік на 14 листопада", 14, 11, true, "standard format"},
 		{"на 5 травня", 5, 5, true, "minimal format"},
 		{"Оновлений графік на 28 лютого 2024", 28, 2, true, "with year"},
 		{"На 1 січня", 1, 1, true, "first day of month"},
 		{"на 31 грудня", 31, 12, true, "last day of month"},
-	
+
 		{"на 1 березня", 1, 3, true, "minimum valid day"},
 		{"на 31 серпня", 31, 8, true, "maximum valid day"},
-	
+
 		{"на 23 жовтня 2025 року", 23, 10, true, "format with year after month"},
 		{"22 жовтня 2025 року", 22, 10, true, "format without 'на' prefix with year"},
 		{"15 листопада 2024 року", 15, 11, true, "another format with year"},
-	
+
 		{"з 15:30, 22 жовтня 2025 року", 22, 10, true, "format with time and year"},
 		{"з 09:00, 5 травня 2025 року", 5, 5, true, "format with time in morning"},
 		{"з 18:45, 31 грудня 2024 року", 31, 12, true, "format with time in evening"},
