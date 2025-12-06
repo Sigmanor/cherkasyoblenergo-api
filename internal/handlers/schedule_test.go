@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -285,7 +286,10 @@ func TestGetSchedule_ScheduleDateField(t *testing.T) {
 
 	assert.NotNil(t, scheduleWithDate)
 	assert.Contains(t, scheduleWithDate, "schedule_date")
-	assert.Equal(t, "14.11", scheduleWithDate["schedule_date"])
+	// schedule_date is now in YYYY-MM-DD format
+	scheduleDateStr, ok := scheduleWithDate["schedule_date"].(string)
+	assert.True(t, ok)
+	assert.Regexp(t, `^\d{4}-11-14$`, scheduleDateStr) // November 14, year varies
 
 	assert.NotNil(t, scheduleWithoutDate)
 	assert.Contains(t, scheduleWithoutDate, "schedule_date")
@@ -789,4 +793,149 @@ func TestGetSchedule_InvalidLimit(t *testing.T) {
 	err = json.Unmarshal(bodyBytes, &errorResponse)
 	assert.NoError(t, err)
 	assert.Contains(t, errorResponse, "error")
+}
+
+func TestGetSchedule_ByScheduleDate_Success(t *testing.T) {
+	db := setupTestDB()
+	app := fiber.New()
+	app.Get("/schedule", GetSchedule(db))
+
+	// Get expected schedule_date for November 14 (from test data)
+	now := time.Now()
+	year := now.Year()
+	if 11 > int(now.Month()) {
+		year--
+	}
+	expectedDate := fmt.Sprintf("%d-11-14", year)
+
+	req := newGetScheduleRequest(map[string]string{
+		"option": "by_schedule_date",
+		"date":   expectedDate,
+	})
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+	bodyBytes, _ := io.ReadAll(resp.Body)
+	var responseBody []map[string]interface{}
+	err = json.Unmarshal(bodyBytes, &responseBody)
+	assert.NoError(t, err)
+
+	// Should find the schedule with title "Графік погодинних відключень на 14 листопада"
+	for _, schedule := range responseBody {
+		scheduleDate, ok := schedule["schedule_date"].(string)
+		assert.True(t, ok)
+		assert.Equal(t, expectedDate, scheduleDate)
+	}
+}
+
+func TestGetSchedule_ByScheduleDate_WithLimit(t *testing.T) {
+	db := setupTestDB()
+	app := fiber.New()
+	app.Get("/schedule", GetSchedule(db))
+
+	now := time.Now()
+	year := now.Year()
+	if 11 > int(now.Month()) {
+		year--
+	}
+	expectedDate := fmt.Sprintf("%d-11-14", year)
+
+	req := newGetScheduleRequest(map[string]string{
+		"option": "by_schedule_date",
+		"date":   expectedDate,
+		"limit":  "1",
+	})
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+	bodyBytes, _ := io.ReadAll(resp.Body)
+	var responseBody []map[string]interface{}
+	err = json.Unmarshal(bodyBytes, &responseBody)
+	assert.NoError(t, err)
+	assert.LessOrEqual(t, len(responseBody), 1)
+}
+
+func TestGetSchedule_ByScheduleDate_WithQueue(t *testing.T) {
+	db := setupTestDB()
+	app := fiber.New()
+	app.Get("/schedule", GetSchedule(db))
+
+	now := time.Now()
+	year := now.Year()
+	if 11 > int(now.Month()) {
+		year--
+	}
+	expectedDate := fmt.Sprintf("%d-11-14", year)
+
+	req := newGetScheduleRequest(map[string]string{
+		"option": "by_schedule_date",
+		"date":   expectedDate,
+		"queue":  "4_1",
+	})
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+	bodyBytes, _ := io.ReadAll(resp.Body)
+	var responseBody []map[string]interface{}
+	err = json.Unmarshal(bodyBytes, &responseBody)
+	assert.NoError(t, err)
+
+	for _, schedule := range responseBody {
+		assert.Contains(t, schedule, "4_1")
+		assert.NotContains(t, schedule, "3_1")
+		assert.NotContains(t, schedule, "5_1")
+	}
+}
+
+func TestGetSchedule_ByScheduleDate_NoDate(t *testing.T) {
+	db := setupTestDB()
+	app := fiber.New()
+	app.Get("/schedule", GetSchedule(db))
+
+	req := newGetScheduleRequest(map[string]string{
+		"option": "by_schedule_date",
+	})
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+
+	bodyBytes, _ := io.ReadAll(resp.Body)
+	var errorResponse map[string]interface{}
+	err = json.Unmarshal(bodyBytes, &errorResponse)
+	assert.NoError(t, err)
+	assert.Contains(t, errorResponse, "error")
+}
+
+func TestGetSchedule_ByScheduleDate_InvalidDateFormat(t *testing.T) {
+	db := setupTestDB()
+	app := fiber.New()
+	app.Get("/schedule", GetSchedule(db))
+
+	invalidDates := []string{"14.11", "2024/11/14", "14-11-2024", "abc"}
+
+	for _, invalidDate := range invalidDates {
+		t.Run("Date_"+invalidDate, func(t *testing.T) {
+			req := newGetScheduleRequest(map[string]string{
+				"option": "by_schedule_date",
+				"date":   invalidDate,
+			})
+
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
+			assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+
+			bodyBytes, _ := io.ReadAll(resp.Body)
+			var errorResponse map[string]interface{}
+			err = json.Unmarshal(bodyBytes, &errorResponse)
+			assert.NoError(t, err)
+			assert.Contains(t, errorResponse, "error")
+		})
+	}
 }
