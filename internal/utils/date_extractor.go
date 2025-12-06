@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 )
 
@@ -26,7 +27,16 @@ func ExtractScheduleDateFromTitle(title string) string {
 	if !ok {
 		return ""
 	}
-	return fmt.Sprintf("%02d.%02d", day, month)
+	
+	now := time.Now()
+	year := now.Year()
+	
+	// If extracted month is after current month, assume previous year
+	if month > int(now.Month()) {
+		year--
+	}
+	
+	return fmt.Sprintf("%d-%02d-%02d", year, month, day)
 }
 
 func tokenizeText(text string) []token {
