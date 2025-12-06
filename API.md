@@ -24,18 +24,18 @@ Retrieve scheduling records based on filter options.
 
 #### Query Parameters
 
-- `option` (required): `all`, `latest_n`, or `by_date`
-- `date` (required for `by_date`): `YYYY-MM-DD`
-- `limit` (required for `latest_n`): Integer greater than 0
+- `option` (required): `all`, `latest_n`, `by_date`, or `by_schedule_date`
+- `date` (required for `by_date` and `by_schedule_date`): `YYYY-MM-DD`
+- `limit` (required for `latest_n`, optional for `by_schedule_date`): Integer greater than 0
 - `queue` (optional): Comma-separated queue identifiers (e.g., `3_2` or `4_1,3_1`)
 
 #### Example Query (JSON equivalent shown for clarity)
 
 ```json
 {
-  "option": "all | latest_n | by_date",
-  "date": "YYYY-MM-DD", // Required for "by_date" option
-  "limit": 5, // Required for "latest_n" option, must be > 0
+  "option": "all | latest_n | by_date | by_schedule_date",
+  "date": "YYYY-MM-DD", // Required for "by_date" and "by_schedule_date" options
+  "limit": 5, // Required for "latest_n", optional for "by_schedule_date"
   "queue": "3_2" // Optional: Filter by queue(s). Single: "3_2" or multiple: "4_1, 3_1" (comma-separated, X: 1-6, Y: 1-2)
 }
 ```
@@ -44,7 +44,8 @@ Retrieve scheduling records based on filter options.
 
 - `all`: Retrieves all schedule records
 - `latest_n`: Gets limited number of recent records (requires `limit`)
-- `by_date`: Gets records for specific date (requires `date`)
+- `by_date`: Gets records for specific publication date (requires `date`)
+- `by_schedule_date`: Gets records for specific schedule date extracted from title (requires `date`, optional `limit`). Results are sorted by publication date (most recent first).
 - `queue` (optional): Filters response to include only the specified queue field(s). Accepts a single queue (e.g., "3_2") or multiple comma-separated queues (e.g., "4_1, 3_1"). Whitespace around commas is ignored. Duplicates are automatically removed.
 
 #### Response
@@ -57,8 +58,8 @@ Retrieve scheduling records based on filter options.
     "id": 1234,
     "news_id": 100,
     "title": "Schedule for November 14",
-    "date": "2024-03-20",
-    "schedule_date": "14.11",
+    "date": "2024-03-20T10:30:00Z",
+    "schedule_date": "2024-11-14",
     "1_1": "text",
     "1_2": "text",
     "2_1": "text",
@@ -83,8 +84,8 @@ Retrieve scheduling records based on filter options.
     "id": 1234,
     "news_id": 100,
     "title": "Schedule for November 14",
-    "date": "2024-03-20",
-    "schedule_date": "14.11",
+    "date": "2024-03-20T10:30:00Z",
+    "schedule_date": "2024-11-14",
     "3_2": "00:30 - 02:30, 06:00 - 09:00"
   }
 ]
@@ -98,8 +99,8 @@ Retrieve scheduling records based on filter options.
     "id": 1234,
     "news_id": 100,
     "title": "Schedule for November 14",
-    "date": "2024-03-20",
-    "schedule_date": "14.11",
+    "date": "2024-03-20T10:30:00Z",
+    "schedule_date": "2024-11-14",
     "4_1": "01:00 - 03:00, 06:00 - 09:00",
     "3_1": "00:30 - 02:30, 05:30 - 08:00"
   }
@@ -212,6 +213,13 @@ curl "https://api.example.com/cherkasyoblenergo/api/blackout-schedule?option=lat
 
 ```bash
 curl "https://api.example.com/cherkasyoblenergo/api/blackout-schedule?option=latest_n&limit=5&queue=4_1,3_1,2_2" \
+  -H "X-API-Key: YOUR_API_KEY"
+```
+
+### Get Schedules by Schedule Date
+
+```bash
+curl "https://api.example.com/cherkasyoblenergo/api/blackout-schedule?option=by_schedule_date&date=2025-12-05&limit=1&queue=4_1" \
   -H "X-API-Key: YOUR_API_KEY"
 ```
 

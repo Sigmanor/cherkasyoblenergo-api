@@ -24,18 +24,18 @@ X-API-Key: YOUR_API_KEY
 
 #### Параметри запиту
 
-- `option` (обов'язково): `all`, `latest_n` або `by_date`
-- `date` (обов'язково для `by_date`): `YYYY-MM-DD`
-- `limit` (обов'язково для `latest_n`): ціле число > 0
+- `option` (обов'язково): `all`, `latest_n`, `by_date` або `by_schedule_date`
+- `date` (обов'язково для `by_date` та `by_schedule_date`): `YYYY-MM-DD`
+- `limit` (обов'язково для `latest_n`, опціонально для `by_schedule_date`): ціле число > 0
 - `queue` (опціонально): значення черг через кому (наприклад, `3_2` або `4_1,3_1`)
 
 #### Приклад параметрів (JSON еквівалент для наочності)
 
 ```json
 {
-  "option": "all | latest_n | by_date",
-  "date": "YYYY-MM-DD", // Обов'язково для опції "by_date"
-  "limit": 5, // Обов'язково для опції "latest_n", має бути > 0
+  "option": "all | latest_n | by_date | by_schedule_date",
+  "date": "YYYY-MM-DD", // Обов'язково для опцій "by_date" та "by_schedule_date"
+  "limit": 5, // Обов'язково для "latest_n", опціонально для "by_schedule_date"
   "queue": "3_2" // Опціонально: Фільтр по черзі(чергах). Одна: "3_2" або декілька: "4_1, 3_1" (через кому, X: 1-6, Y: 1-2)
 }
 ```
@@ -44,7 +44,8 @@ X-API-Key: YOUR_API_KEY
 
 - `all`: Отримує всі записи розкладу
 - `latest_n`: Отримує обмежену кількість останніх записів (потрібен `limit`)
-- `by_date`: Отримує записи для конкретної дати (потрібна `date`)
+- `by_date`: Отримує записи за конкретною датою публікації (потрібна `date`)
+- `by_schedule_date`: Отримує записи за датою графіка, витягнутою з назви (потрібна `date`, опціонально `limit`). Результати сортуються за датою публікації (найсвіжіші першими).
 - `queue` (опціонально): Фільтрує відповідь, щоб включити лише вказане поле(поля) черги. Приймає одну чергу (наприклад, "3_2") або декілька черг через кому (наприклад, "4_1, 3_1"). Пробіли навколо ком ігноруються. Дублікати автоматично видаляються.
 
 #### Відповідь
@@ -59,8 +60,8 @@ X-API-Key: YOUR_API_KEY
     "id": 1234,
     "news_id": 100,
     "title": "Графік на 14 листопада",
-    "date": "2024-03-20",
-    "schedule_date": "14.11",
+    "date": "2024-03-20T10:30:00Z",
+    "schedule_date": "2024-11-14",
     "1_1": "текст",
     "1_2": "текст",
     "2_1": "текст",
@@ -85,8 +86,8 @@ X-API-Key: YOUR_API_KEY
     "id": 1234,
     "news_id": 100,
     "title": "Графік на 14 листопада",
-    "date": "2024-03-20",
-    "schedule_date": "14.11",
+    "date": "2024-03-20T10:30:00Z",
+    "schedule_date": "2024-11-14",
     "3_2": "00:30 - 02:30, 06:00 - 09:00"
   }
 ]
@@ -100,8 +101,8 @@ X-API-Key: YOUR_API_KEY
     "id": 1234,
     "news_id": 100,
     "title": "Графік на 14 листопада",
-    "date": "2024-03-20",
-    "schedule_date": "14.11",
+    "date": "2024-03-20T10:30:00Z",
+    "schedule_date": "2024-11-14",
     "4_1": "01:00 - 03:00, 06:00 - 09:00",
     "3_1": "00:30 - 02:30, 05:30 - 08:00"
   }
@@ -214,6 +215,13 @@ curl "https://api.example.com/cherkasyoblenergo/api/blackout-schedule?option=lat
 
 ```bash
 curl "https://api.example.com/cherkasyoblenergo/api/blackout-schedule?option=latest_n&limit=5&queue=4_1,3_1,2_2" \
+  -H "X-API-Key: YOUR_API_KEY"
+```
+
+### Отримати розклади за датою графіка
+
+```bash
+curl "https://api.example.com/cherkasyoblenergo/api/blackout-schedule?option=by_schedule_date&date=2025-12-05&limit=1&queue=4_1" \
   -H "X-API-Key: YOUR_API_KEY"
 ```
 
