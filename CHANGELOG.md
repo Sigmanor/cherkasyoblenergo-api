@@ -1,3 +1,14 @@
+# [1.9.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.8.5...v1.9.0) (2025-12-06)
+
+
+### Features
+
+* Add `by_schedule_date` filtering for schedules and enhance date extraction to include year. ([4e777af](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/4e777af709ccdd4576f814f50a645be01bad1e9f))
+* Add `by_schedule_date` option to schedule handler and update date extraction to YYYY-MM-DD format. ([b132812](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/b132812cc2cfd7e4f3f5dda92922a1edb58569d9))
+* enhance date extraction to include year calculation and format as YYYY-MM-DD ([61e8433](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/61e8433894ec8af67ea20782a7aca1daefe546e1))
+* Implement schedule filtering by extracted schedule date, now including an inferred year in the extraction logic. ([a23b90a](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/a23b90a2bc7f63207ec034dc46979013ae0b28dc))
+* Introduce `by_schedule_date` API option, update `schedule_date` format to YYYY-MM-DD, and enhance date extraction with year inference. ([8426f33](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/8426f3319e761ba94898fa632800dbbf4e26561f))
+
 ## [1.8.5](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.8.4...v1.8.5) (2025-11-22)
 
 
