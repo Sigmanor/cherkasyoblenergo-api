@@ -100,7 +100,20 @@ func buildFilteredResponse(schedules []models.Schedule, queueNames []string) []m
 	return result
 }
 
+func resolveDateValue(dateStr string) string {
+	now := time.Now()
+	switch strings.ToLower(dateStr) {
+	case "today":
+		return now.Format("2006-01-02")
+	case "tomorrow":
+		return now.AddDate(0, 0, 1).Format("2006-01-02")
+	default:
+		return dateStr
+	}
+}
+
 func handleScheduleRequest(c *fiber.Ctx, db *gorm.DB, filter ScheduleFilter) error {
+	filter.Date = resolveDateValue(filter.Date)
 	var schedules []models.Schedule
 	query := db.Table("schedules")
 	switch filter.Option {
