@@ -941,3 +941,105 @@ func TestGetSchedule_ByScheduleDate_InvalidDateFormat(t *testing.T) {
 		})
 	}
 }
+
+func TestGetSchedule_ByScheduleDate_Today(t *testing.T) {
+	db := setupTestDB()
+	app := fiber.New()
+	app.Get("/schedule", GetSchedule(db))
+
+	req := newGetScheduleRequest(map[string]string{
+		"option": "by_schedule_date",
+		"date":   "today",
+	})
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+	bodyBytes, _ := io.ReadAll(resp.Body)
+	var responseBody []map[string]interface{}
+	err = json.Unmarshal(bodyBytes, &responseBody)
+	assert.NoError(t, err)
+	// May or may not have results depending on test data, but should not error
+}
+
+func TestGetSchedule_ByScheduleDate_Tomorrow(t *testing.T) {
+	db := setupTestDB()
+	app := fiber.New()
+	app.Get("/schedule", GetSchedule(db))
+
+	req := newGetScheduleRequest(map[string]string{
+		"option": "by_schedule_date",
+		"date":   "tomorrow",
+	})
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+	bodyBytes, _ := io.ReadAll(resp.Body)
+	var responseBody []map[string]interface{}
+	err = json.Unmarshal(bodyBytes, &responseBody)
+	assert.NoError(t, err)
+}
+
+func TestGetSchedule_ByDate_Today(t *testing.T) {
+	db := setupTestDB()
+	app := fiber.New()
+	app.Get("/schedule", GetSchedule(db))
+
+	req := newGetScheduleRequest(map[string]string{
+		"option": "by_date",
+		"date":   "today",
+	})
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+	bodyBytes, _ := io.ReadAll(resp.Body)
+	var responseBody []map[string]interface{}
+	err = json.Unmarshal(bodyBytes, &responseBody)
+	assert.NoError(t, err)
+}
+
+func TestGetSchedule_ByDate_Tomorrow(t *testing.T) {
+	db := setupTestDB()
+	app := fiber.New()
+	app.Get("/schedule", GetSchedule(db))
+
+	req := newGetScheduleRequest(map[string]string{
+		"option": "by_date",
+		"date":   "tomorrow",
+	})
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+	bodyBytes, _ := io.ReadAll(resp.Body)
+	var responseBody []map[string]interface{}
+	err = json.Unmarshal(bodyBytes, &responseBody)
+	assert.NoError(t, err)
+}
+
+func TestGetSchedule_DateValues_CaseInsensitive(t *testing.T) {
+	db := setupTestDB()
+	app := fiber.New()
+	app.Get("/schedule", GetSchedule(db))
+
+	testCases := []string{"TODAY", "Today", "TodAY", "TOMORROW", "Tomorrow", "toMORROW"}
+
+	for _, dateValue := range testCases {
+		t.Run("Date_"+dateValue, func(t *testing.T) {
+			req := newGetScheduleRequest(map[string]string{
+				"option": "by_schedule_date",
+				"date":   dateValue,
+			})
+
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
+			assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+		})
+	}
+}
