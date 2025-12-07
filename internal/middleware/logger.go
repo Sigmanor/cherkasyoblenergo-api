@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -12,7 +12,7 @@ func maskAPIKey(apiKey string) string {
 	if len(apiKey) < 10 {
 		return apiKey
 	}
-	return fmt.Sprintf("%s%s%s", apiKey[:5], strings.Repeat("*", len(apiKey)-10), apiKey[len(apiKey)-5:])
+	return apiKey[:5] + strings.Repeat("*", len(apiKey)-10) + apiKey[len(apiKey)-5:]
 }
 
 func Logger() fiber.Handler {
@@ -26,20 +26,19 @@ func Logger() fiber.Handler {
 			apiKey = c.Query("api_key")
 		}
 
-		maskedKey := ""
-		if apiKey != "" {
-			maskedKey = fmt.Sprintf(" [API Key: %s]", maskAPIKey(apiKey))
+		attrs := []any{
+			slog.String("method", c.Method()),
+			slog.String("path", c.Path()),
+			slog.Int("status", c.Response().StatusCode()),
+			slog.Duration("duration", duration),
+			slog.String("ip", c.IP()),
 		}
 
-		fmt.Printf("[%s] %s %s %d %v %s%s\n",
-			time.Now().Format("2006-01-02 15:04:05"),
-			c.Method(),
-			c.Path(),
-			c.Response().StatusCode(),
-			duration,
-			c.IP(),
-			maskedKey,
-		)
+		if apiKey != "" {
+			attrs = append(attrs, slog.String("api_key", maskAPIKey(apiKey)))
+		}
+
+		slog.Info("HTTP request", attrs...)
 
 		return err
 	}
