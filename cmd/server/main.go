@@ -1,9 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"cherkasyoblenergo-api/internal/config"
 	"cherkasyoblenergo-api/internal/database"
@@ -38,7 +42,7 @@ func runServer() error {
 		return fmt.Errorf("NEWS_URL environment variable is required")
 	}
 
-	parser.StartCron(db, newsURL)
+	cronScheduler := parser.StartCron(db, newsURL)
 
 	app := fiber.New()
 	app.Use(middleware.APIKeyAuth(db))
@@ -56,6 +60,29 @@ func runServer() error {
 		go parser.FetchAndStoreNews(db, newsURL)
 		return nil
 	})
+
+	// Graceful shutdown
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		<-quit
+		log.Println("Received shutdown signal, gracefully shutting down...")
+
+		// Stop cron scheduler
+		if cronScheduler != nil {
+			cronScheduler.Stop()
+			log.Println("Cron scheduler stopped")
+		}
+
+		// Shutdown server with 10 second timeout
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		if err := app.ShutdownWithContext(ctx); err != nil {
+			log.Printf("Error during server shutdown: %v", err)
+		}
+	}()
 
 	log.Printf("Starting server (app version: %s)\n", config.AppVersion)
 	return app.Listen(":" + cfg.ServerPort)
