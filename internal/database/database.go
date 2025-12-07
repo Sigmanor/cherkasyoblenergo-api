@@ -7,12 +7,19 @@ import (
 
 	"cherkasyoblenergo-api/internal/config"
 
+	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	_ "github.com/lib/pq"
 )
 
-const targetDBName = "cherkasyoblenergo"
+const defaultDBName = "cherkasyoblenergo"
+
+func getDBName(cfg config.Config) string {
+	if cfg.DBName != "" {
+		return cfg.DBName
+	}
+	return defaultDBName
+}
 
 func createDSN(cfg config.Config, dbName string) string {
 	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
@@ -20,6 +27,7 @@ func createDSN(cfg config.Config, dbName string) string {
 }
 
 func ensureDatabaseExists(cfg config.Config) error {
+	targetDBName := getDBName(cfg)
 	dsn := createDSN(cfg, "template1")
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
@@ -58,6 +66,7 @@ func ConnectDB(cfg config.Config) (*gorm.DB, error) {
 		return nil, fmt.Errorf("failed to ensure database exists: %w", err)
 	}
 
+	targetDBName := getDBName(cfg)
 	dsn := createDSN(cfg, targetDBName)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
