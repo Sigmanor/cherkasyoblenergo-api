@@ -25,7 +25,7 @@ X-API-Key: YOUR_API_KEY
 #### Параметри запиту
 
 - `option` (обов'язково): `all`, `latest_n`, `by_date` або `by_schedule_date`
-- `date` (обов'язково для `by_date` та `by_schedule_date`): `YYYY-MM-DD`
+- `date` (обов'язково для `by_date` та `by_schedule_date`): `YYYY-MM-DD`, `today` або `tomorrow`
 - `limit` (обов'язково для `latest_n`, опціонально для `by_schedule_date`): ціле число > 0
 - `queue` (опціонально): значення черг через кому (наприклад, `3_2` або `4_1,3_1`)
 
@@ -34,7 +34,7 @@ X-API-Key: YOUR_API_KEY
 ```json
 {
   "option": "all | latest_n | by_date | by_schedule_date",
-  "date": "YYYY-MM-DD", // Обов'язково для опцій "by_date" та "by_schedule_date"
+  "date": "YYYY-MM-DD | today | tomorrow", // Обов'язково для опцій "by_date" та "by_schedule_date"
   "limit": 5, // Обов'язково для "latest_n", опціонально для "by_schedule_date"
   "queue": "3_2" // Опціонально: Фільтр по черзі(чергах). Одна: "3_2" або декілька: "4_1, 3_1" (через кому, X: 1-6, Y: 1-2)
 }
@@ -222,6 +222,13 @@ curl "https://api.example.com/cherkasyoblenergo/api/blackout-schedule?option=lat
 
 ```bash
 curl "https://api.example.com/cherkasyoblenergo/api/blackout-schedule?option=by_schedule_date&date=2025-12-05&limit=1&queue=4_1" \
+  -H "X-API-Key: YOUR_API_KEY"
+```
+
+### Отримати сьогоднішній графік
+
+```bash
+curl "https://api.example.com/cherkasyoblenergo/api/blackout-schedule?option=by_schedule_date&date=today" \
   -H "X-API-Key: YOUR_API_KEY"
 ```
 

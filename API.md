@@ -25,7 +25,7 @@ Retrieve scheduling records based on filter options.
 #### Query Parameters
 
 - `option` (required): `all`, `latest_n`, `by_date`, or `by_schedule_date`
-- `date` (required for `by_date` and `by_schedule_date`): `YYYY-MM-DD`
+- `date` (required for `by_date` and `by_schedule_date`): `YYYY-MM-DD`, `today`, or `tomorrow`
 - `limit` (required for `latest_n`, optional for `by_schedule_date`): Integer greater than 0
 - `queue` (optional): Comma-separated queue identifiers (e.g., `3_2` or `4_1,3_1`)
 
@@ -34,7 +34,7 @@ Retrieve scheduling records based on filter options.
 ```json
 {
   "option": "all | latest_n | by_date | by_schedule_date",
-  "date": "YYYY-MM-DD", // Required for "by_date" and "by_schedule_date" options
+  "date": "YYYY-MM-DD | today | tomorrow", // Required for "by_date" and "by_schedule_date" options
   "limit": 5, // Required for "latest_n", optional for "by_schedule_date"
   "queue": "3_2" // Optional: Filter by queue(s). Single: "3_2" or multiple: "4_1, 3_1" (comma-separated, X: 1-6, Y: 1-2)
 }
@@ -220,6 +220,13 @@ curl "https://api.example.com/cherkasyoblenergo/api/blackout-schedule?option=lat
 
 ```bash
 curl "https://api.example.com/cherkasyoblenergo/api/blackout-schedule?option=by_schedule_date&date=2025-12-05&limit=1&queue=4_1" \
+  -H "X-API-Key: YOUR_API_KEY"
+```
+
+### Get Today's Schedule
+
+```bash
+curl "https://api.example.com/cherkasyoblenergo/api/blackout-schedule?option=by_schedule_date&date=today" \
   -H "X-API-Key: YOUR_API_KEY"
 ```
 
