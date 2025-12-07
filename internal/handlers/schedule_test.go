@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"cherkasyoblenergo-api/internal/models"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/sqlite"
@@ -22,65 +24,65 @@ func setupTestDB() *gorm.DB {
 		panic("failed to connect to test database")
 	}
 
-	err = db.AutoMigrate(&Schedule{})
+	err = db.AutoMigrate(&models.Schedule{})
 	if err != nil {
 		panic("failed to migrate test database")
 	}
 
-	testSchedules := []Schedule{
+	testSchedules := []models.Schedule{
 		{
-			ID:       1,
-			NewsID:   101,
-			Title:    "Графік погодинних відключень на 14 листопада",
-			Date:     time.Now().Add(-48 * time.Hour),
-			OneOne:   "08:00-10:00",
-			OneTwo:   "10:00-12:00",
-			TwoOne:   "12:00-14:00",
-			TwoTwo:   "14:00-16:00",
-			ThreeOne: "09:00-11:00",
-			ThreeTwo: "11:00-13:00",
-			FourOne:  "13:00-15:00",
-			FourTwo:  "15:00-17:00",
-			FiveOne:  "07:00-09:00",
-			FiveTwo:  "09:00-11:00",
-			SixOne:   "11:00-13:00",
-			SixTwo:   "13:00-15:00",
+			ID:     1,
+			NewsID: 101,
+			Title:  "Графік погодинних відключень на 14 листопада",
+			Date:   time.Now().Add(-48 * time.Hour),
+			Col1_1: "08:00-10:00",
+			Col1_2: "10:00-12:00",
+			Col2_1: "12:00-14:00",
+			Col2_2: "14:00-16:00",
+			Col3_1: "09:00-11:00",
+			Col3_2: "11:00-13:00",
+			Col4_1: "13:00-15:00",
+			Col4_2: "15:00-17:00",
+			Col5_1: "07:00-09:00",
+			Col5_2: "09:00-11:00",
+			Col6_1: "11:00-13:00",
+			Col6_2: "13:00-15:00",
 		},
 		{
-			ID:       2,
-			NewsID:   102,
-			Title:    "Графік погодинних відключень на 25 грудня",
-			Date:     time.Now().Add(-24 * time.Hour),
-			OneOne:   "09:00-11:00",
-			OneTwo:   "11:00-13:00",
-			TwoOne:   "13:00-15:00",
-			TwoTwo:   "15:00-17:00",
-			ThreeOne: "10:00-12:00",
-			ThreeTwo: "12:00-14:00",
-			FourOne:  "14:00-16:00",
-			FourTwo:  "16:00-18:00",
-			FiveOne:  "08:00-10:00",
-			FiveTwo:  "10:00-12:00",
-			SixOne:   "12:00-14:00",
-			SixTwo:   "14:00-16:00",
+			ID:     2,
+			NewsID: 102,
+			Title:  "Графік погодинних відключень на 25 грудня",
+			Date:   time.Now().Add(-24 * time.Hour),
+			Col1_1: "09:00-11:00",
+			Col1_2: "11:00-13:00",
+			Col2_1: "13:00-15:00",
+			Col2_2: "15:00-17:00",
+			Col3_1: "10:00-12:00",
+			Col3_2: "12:00-14:00",
+			Col4_1: "14:00-16:00",
+			Col4_2: "16:00-18:00",
+			Col5_1: "08:00-10:00",
+			Col5_2: "10:00-12:00",
+			Col6_1: "12:00-14:00",
+			Col6_2: "14:00-16:00",
 		},
 		{
-			ID:       3,
-			NewsID:   103,
-			Title:    "Schedule without date",
-			Date:     time.Now(),
-			OneOne:   "07:00-09:00",
-			OneTwo:   "09:00-11:00",
-			TwoOne:   "11:00-13:00",
-			TwoTwo:   "13:00-15:00",
-			ThreeOne: "08:00-10:00",
-			ThreeTwo: "10:00-12:00",
-			FourOne:  "12:00-14:00",
-			FourTwo:  "14:00-16:00",
-			FiveOne:  "06:00-08:00",
-			FiveTwo:  "08:00-10:00",
-			SixOne:   "10:00-12:00",
-			SixTwo:   "12:00-14:00",
+			ID:     3,
+			NewsID: 103,
+			Title:  "Schedule without date",
+			Date:   time.Now(),
+			Col1_1: "07:00-09:00",
+			Col1_2: "09:00-11:00",
+			Col2_1: "11:00-13:00",
+			Col2_2: "13:00-15:00",
+			Col3_1: "08:00-10:00",
+			Col3_2: "10:00-12:00",
+			Col4_1: "12:00-14:00",
+			Col4_2: "14:00-16:00",
+			Col5_1: "06:00-08:00",
+			Col5_2: "08:00-10:00",
+			Col6_1: "10:00-12:00",
+			Col6_2: "12:00-14:00",
 		},
 	}
 
