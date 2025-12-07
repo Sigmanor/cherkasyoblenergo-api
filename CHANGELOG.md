@@ -1,3 +1,22 @@
+# [1.10.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.9.0...v1.10.0) (2025-12-07)
+
+
+### Bug Fixes
+
+* **auth:** remove unused api key skips ([8091cca](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/8091ccad5de3d13c82ebcf2cbf81741e532810fb))
+* **db:** respect configured database name ([7e546f3](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/7e546f3589dc1a28eef9465942c0c9a6fc2e5ed6))
+* **middleware:** refresh cached rate limiters ([2033ff5](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/2033ff5f78f7c31f92020635c0e17140364fcd8d))
+* **middleware:** use structured request logging ([cdc63dc](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/cdc63dc1e38f6bd4d2e052e7892d3847b28e8122))
+* **models:** map schedule_date column ([dda0d44](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/dda0d44af20074915a6078117c1385efc6f84416))
+* **parser:** expose cron and fill schedule date ([7106f9e](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/7106f9e3c2b4fcf03e902236fb6336b0e593c8fd))
+* **schedule:** filter schedules by stored dates ([0f26aeb](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/0f26aebeb98ec572355c64b93faaa5a9ad798139))
+* **schedule:** resolve today and tomorrow dates ([7bf1894](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/7bf18941755f91d933c0476d6348850927ef07e0))
+
+
+### Features
+
+* **server:** add graceful shutdown handling ([8fd207e](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/8fd207e2881a5ede8a84ce5d4223998150edf4b3))
+
 # [1.9.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.8.5...v1.9.0) (2025-12-06)
 
 
