@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"cherkasyoblenergo-api/internal/models"
+	"cherkasyoblenergo-api/internal/utils"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/robfig/cron/v3"
@@ -43,7 +44,7 @@ type scheduleNews struct {
 	HtmlBody string
 }
 
-func StartCron(db *gorm.DB, newsURL string) {
+func StartCron(db *gorm.DB, newsURL string) *cron.Cron {
 	if newsURL == "" {
 		log.Fatal("NEWS_URL environment variable is required")
 	}
@@ -61,6 +62,7 @@ func StartCron(db *gorm.DB, newsURL string) {
 	c.AddFunc(cronSchedule, func() { FetchAndStoreNews(db, newsURL) })
 
 	c.Start()
+	return c
 }
 
 func FetchAndStoreNews(db *gorm.DB, newsURL string) {
@@ -124,6 +126,7 @@ func FetchAndStoreNews(db *gorm.DB, newsURL string) {
 			sch.NewsID = news.ID
 			sch.Title = news.Title
 			sch.Date = news.Date
+			sch.ScheduleDate = utils.ExtractScheduleDateFromTitle(news.Title)
 			if err = db.Create(&sch).Error; err != nil {
 				log.Printf("Failed to save data to DB: %v", err)
 			} else {
