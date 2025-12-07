@@ -8,9 +8,7 @@ import (
 )
 
 var authSkipPaths = map[string]struct{}{
-	"/cherkasyoblenergo/api/generate-api-key": {},
-	"/cherkasyoblenergo/api/update-api-key":   {},
-	"/cherkasyoblenergo/api/api-keys":         {},
+	"/cherkasyoblenergo/api/api-keys": {},
 }
 
 func APIKeyAuth(db *gorm.DB) fiber.Handler {
