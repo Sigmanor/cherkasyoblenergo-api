@@ -11,6 +11,5 @@ RUN go build -ldflags="-X 'cherkasyoblenergo-api/internal/config.AppVersion=${Ap
 FROM alpine:3.16
 WORKDIR /app
 COPY --from=builder /app/cherkasyoblenergo_api .
-COPY .env /app/.env
 EXPOSE 9011
 CMD ["./cherkasyoblenergo_api"]
