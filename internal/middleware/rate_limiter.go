@@ -14,12 +14,19 @@ import (
 	"gorm.io/gorm"
 )
 
+// limiterEntry stores limiter with last DB check timestamp
+type limiterEntry struct {
+	limiter     *limiter.Limiter
+	rateLimit   int
+	lastChecked time.Time
+}
+
+const rateLimitCacheTTL = 60 * time.Second
+
 var limiterCache = sync.Map{}
 
 var skipPaths = map[string]struct{}{
-	"/cherkasyoblenergo/api/generate-api-key": {},
-	"/cherkasyoblenergo/api/update-api-key":   {},
-	"/cherkasyoblenergo/api/api-keys":         {},
+	"/cherkasyoblenergo/api/api-keys": {},
 }
 
 func RateLimiter(db *gorm.DB) fiber.Handler {
@@ -31,29 +38,49 @@ func RateLimiter(db *gorm.DB) fiber.Handler {
 		if !ok {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to get API key from context"})
 		}
-		lmt, ok := limiterCache.Load(apiKey.Key)
-		if !ok {
+
+		entry, exists := limiterCache.Load(apiKey.Key)
+		var limiterInstance *limiter.Limiter
+
+		if !exists {
+			// Create new limiter
 			rate := limiter.Rate{Period: 1 * time.Minute, Limit: int64(apiKey.RateLimit)}
 			store := mem.NewStore()
-			lmt = limiter.New(store, rate)
-			limiterCache.Store(apiKey.Key, lmt)
+			limiterInstance = limiter.New(store, rate)
+			limiterCache.Store(apiKey.Key, &limiterEntry{
+				limiter:     limiterInstance,
+				rateLimit:   apiKey.RateLimit,
+				lastChecked: time.Now(),
+			})
 			log.Printf("Created new limiter for API key: %s with rate limit: %d", maskAPIKey(apiKey.Key), apiKey.RateLimit)
 		} else {
-			log.Printf("Using cached limiter for API key: %s", maskAPIKey(apiKey.Key))
+			cachedEntry := entry.(*limiterEntry)
+			limiterInstance = cachedEntry.limiter
+
+			// Check if we need to refresh rate limit from DB (TTL expired)
+			if time.Since(cachedEntry.lastChecked) > rateLimitCacheTTL {
+				var updatedAPIKey models.APIKey
+				if err := db.Where("key = ?", apiKey.Key).First(&updatedAPIKey).Error; err != nil {
+					return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch API key from database"})
+				}
+
+				if updatedAPIKey.RateLimit != cachedEntry.rateLimit {
+					// Rate limit changed, create new limiter
+					rate := limiter.Rate{Period: 1 * time.Minute, Limit: int64(updatedAPIKey.RateLimit)}
+					store := mem.NewStore()
+					limiterInstance = limiter.New(store, rate)
+					log.Printf("Updated limiter for API key: %s with new rate limit: %d", maskAPIKey(apiKey.Key), updatedAPIKey.RateLimit)
+				}
+
+				// Update cache with new timestamp (and possibly new limiter)
+				limiterCache.Store(apiKey.Key, &limiterEntry{
+					limiter:     limiterInstance,
+					rateLimit:   updatedAPIKey.RateLimit,
+					lastChecked: time.Now(),
+				})
+			}
 		}
-		limiterInstance := lmt.(*limiter.Limiter)
-		var updatedAPIKey models.APIKey
-		if err := db.Where("key = ?", apiKey.Key).First(&updatedAPIKey).Error; err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch API key from database"})
-		}
-		if updatedAPIKey.RateLimit != apiKey.RateLimit {
-			rate := limiter.Rate{Period: 1 * time.Minute, Limit: int64(updatedAPIKey.RateLimit)}
-			store := mem.NewStore()
-			newLimiter := limiter.New(store, rate)
-			limiterCache.Store(apiKey.Key, newLimiter)
-			limiterInstance = newLimiter
-			log.Printf("Updated limiter for API key: %s with new rate limit: %d", maskAPIKey(apiKey.Key), updatedAPIKey.RateLimit)
-		}
+
 		ctx := context.Background()
 		limiterContext, err := limiterInstance.Get(ctx, apiKey.Key)
 		if err != nil {
