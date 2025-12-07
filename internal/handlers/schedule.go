@@ -7,31 +7,12 @@ import (
 	"strings"
 	"time"
 
+	"cherkasyoblenergo-api/internal/models"
 	"cherkasyoblenergo-api/internal/utils"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
-
-type Schedule struct {
-	ID           int64     `json:"id"`
-	NewsID       int       `json:"news_id"`
-	Title        string    `json:"title"`
-	Date         time.Time `json:"date"`
-	ScheduleDate string    `json:"schedule_date"`
-	OneOne       string    `gorm:"column:1_1" json:"1_1"`
-	OneTwo       string    `gorm:"column:1_2" json:"1_2"`
-	TwoOne       string    `gorm:"column:2_1" json:"2_1"`
-	TwoTwo       string    `gorm:"column:2_2" json:"2_2"`
-	ThreeOne     string    `gorm:"column:3_1" json:"3_1"`
-	ThreeTwo     string    `gorm:"column:3_2" json:"3_2"`
-	FourOne      string    `gorm:"column:4_1" json:"4_1"`
-	FourTwo      string    `gorm:"column:4_2" json:"4_2"`
-	FiveOne      string    `gorm:"column:5_1" json:"5_1"`
-	FiveTwo      string    `gorm:"column:5_2" json:"5_2"`
-	SixOne       string    `gorm:"column:6_1" json:"6_1"`
-	SixTwo       string    `gorm:"column:6_2" json:"6_2"`
-}
 
 type ScheduleFilter struct {
 	Option string `json:"option"`
@@ -68,38 +49,38 @@ func parseAndValidateQueues(queueStr string) ([]string, error) {
 	return result, nil
 }
 
-func getQueueValue(schedule *Schedule, queueName string) string {
+func getQueueValue(schedule *models.Schedule, queueName string) string {
 	switch queueName {
 	case "1_1":
-		return schedule.OneOne
+		return schedule.Col1_1
 	case "1_2":
-		return schedule.OneTwo
+		return schedule.Col1_2
 	case "2_1":
-		return schedule.TwoOne
+		return schedule.Col2_1
 	case "2_2":
-		return schedule.TwoTwo
+		return schedule.Col2_2
 	case "3_1":
-		return schedule.ThreeOne
+		return schedule.Col3_1
 	case "3_2":
-		return schedule.ThreeTwo
+		return schedule.Col3_2
 	case "4_1":
-		return schedule.FourOne
+		return schedule.Col4_1
 	case "4_2":
-		return schedule.FourTwo
+		return schedule.Col4_2
 	case "5_1":
-		return schedule.FiveOne
+		return schedule.Col5_1
 	case "5_2":
-		return schedule.FiveTwo
+		return schedule.Col5_2
 	case "6_1":
-		return schedule.SixOne
+		return schedule.Col6_1
 	case "6_2":
-		return schedule.SixTwo
+		return schedule.Col6_2
 	default:
 		return ""
 	}
 }
 
-func buildFilteredResponse(schedules []Schedule, queueNames []string) []map[string]interface{} {
+func buildFilteredResponse(schedules []models.Schedule, queueNames []string) []map[string]interface{} {
 	result := make([]map[string]interface{}, len(schedules))
 	for i, schedule := range schedules {
 		resultMap := map[string]interface{}{
@@ -120,7 +101,7 @@ func buildFilteredResponse(schedules []Schedule, queueNames []string) []map[stri
 }
 
 func handleScheduleRequest(c *fiber.Ctx, db *gorm.DB, filter ScheduleFilter) error {
-	var schedules []Schedule
+	var schedules []models.Schedule
 	query := db.Table("schedules")
 	switch filter.Option {
 	case "all":
@@ -155,21 +136,31 @@ func handleScheduleRequest(c *fiber.Ctx, db *gorm.DB, filter ScheduleFilter) err
 		if filter.Limit < 0 {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid limit value, it must be greater than or equal to zero"})
 		}
-		
-		// Fetch all schedules ordered by date desc
-		var allSchedules []Schedule
-		if err := query.Order("date desc").Find(&allSchedules).Error; err != nil {
+
+		// First try SQL filter for records with schedule_date already set
+		scheduleQuery := db.Table("schedules").Where("schedule_date = ?", filter.Date).Order("date desc")
+		if filter.Limit > 0 {
+			scheduleQuery = scheduleQuery.Limit(filter.Limit)
+		}
+		if err := scheduleQuery.Find(&schedules).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve records"})
 		}
-		
-		// Compute schedule_date and filter by matching date
-		for i := range allSchedules {
-			allSchedules[i].ScheduleDate = utils.ExtractScheduleDateFromTitle(allSchedules[i].Title)
-			if allSchedules[i].ScheduleDate == filter.Date {
-				schedules = append(schedules, allSchedules[i])
-				// Apply limit if specified
-				if filter.Limit > 0 && len(schedules) >= filter.Limit {
-					break
+
+		// Fallback: if no results or need more, check records with empty schedule_date
+		neededMore := filter.Limit == 0 || len(schedules) < filter.Limit
+		if neededMore {
+			var legacySchedules []models.Schedule
+			// Use fresh query for legacy records (without previous WHERE conditions)
+			legacyQuery := db.Table("schedules").Where("schedule_date = '' OR schedule_date IS NULL").Order("date desc")
+			if err := legacyQuery.Find(&legacySchedules).Error; err == nil {
+				for i := range legacySchedules {
+					legacySchedules[i].ScheduleDate = utils.ExtractScheduleDateFromTitle(legacySchedules[i].Title)
+					if legacySchedules[i].ScheduleDate == filter.Date {
+						schedules = append(schedules, legacySchedules[i])
+						if filter.Limit > 0 && len(schedules) >= filter.Limit {
+							break
+						}
+					}
 				}
 			}
 		}
@@ -177,8 +168,11 @@ func handleScheduleRequest(c *fiber.Ctx, db *gorm.DB, filter ScheduleFilter) err
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid option parameter value"})
 	}
 
+	// Fill schedule_date for records that don't have it (backward compatibility)
 	for i := range schedules {
-		schedules[i].ScheduleDate = utils.ExtractScheduleDateFromTitle(schedules[i].Title)
+		if schedules[i].ScheduleDate == "" {
+			schedules[i].ScheduleDate = utils.ExtractScheduleDateFromTitle(schedules[i].Title)
+		}
 	}
 
 	validatedQueues, err := parseAndValidateQueues(filter.Queue)
