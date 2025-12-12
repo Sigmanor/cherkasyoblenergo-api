@@ -9,6 +9,9 @@ RUN go build -ldflags="-X 'cherkasyoblenergo-api/internal/config.AppVersion=${Ap
 
 # Runtime
 FROM alpine:3.16
+RUN apk add --no-cache tzdata
+ENV TZ=Europe/Kyiv
+
 WORKDIR /app
 COPY --from=builder /app/cherkasyoblenergo_api .
 COPY .env /app/.env
