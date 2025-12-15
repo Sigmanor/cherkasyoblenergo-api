@@ -54,6 +54,9 @@ func runServer() error {
 	api.Post("/api-keys", handlers.CreateAPIKey(db, cfg))
 	api.Patch("/api-keys", handlers.UpdateAPIKey(db, cfg))
 	api.Delete("/api-keys", handlers.DeleteAPIKey(db, cfg))
+	api.Post("/webhook", handlers.RegisterWebhook(db))
+	api.Delete("/webhook", handlers.DeleteWebhook(db))
+	api.Get("/webhook", handlers.GetWebhookStatus(db))
 
 	app.Hooks().OnListen(func(data fiber.ListenData) error {
 		log.Println("Server started, running initial news parsing")
@@ -61,7 +64,6 @@ func runServer() error {
 		return nil
 	})
 
-	// Graceful shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
@@ -69,13 +71,11 @@ func runServer() error {
 		<-quit
 		log.Println("Received shutdown signal, gracefully shutting down...")
 
-		// Stop cron scheduler
 		if cronScheduler != nil {
 			cronScheduler.Stop()
 			log.Println("Cron scheduler stopped")
 		}
 
-		// Shutdown server with 10 second timeout
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
