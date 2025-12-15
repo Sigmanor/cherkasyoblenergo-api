@@ -150,7 +150,6 @@ func handleScheduleRequest(c *fiber.Ctx, db *gorm.DB, filter ScheduleFilter) err
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid limit value, it must be greater than or equal to zero"})
 		}
 
-		// First try SQL filter for records with schedule_date already set
 		scheduleQuery := db.Table("schedules").Where("schedule_date = ?", filter.Date).Order("date desc")
 		if filter.Limit > 0 {
 			scheduleQuery = scheduleQuery.Limit(filter.Limit)
@@ -159,11 +158,9 @@ func handleScheduleRequest(c *fiber.Ctx, db *gorm.DB, filter ScheduleFilter) err
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve records"})
 		}
 
-		// Fallback: if no results or need more, check records with empty schedule_date
 		neededMore := filter.Limit == 0 || len(schedules) < filter.Limit
 		if neededMore {
 			var legacySchedules []models.Schedule
-			// Use fresh query for legacy records (without previous WHERE conditions)
 			legacyQuery := db.Table("schedules").Where("schedule_date = '' OR schedule_date IS NULL").Order("date desc")
 			if err := legacyQuery.Find(&legacySchedules).Error; err == nil {
 				for i := range legacySchedules {
@@ -181,7 +178,6 @@ func handleScheduleRequest(c *fiber.Ctx, db *gorm.DB, filter ScheduleFilter) err
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid option parameter value"})
 	}
 
-	// Fill schedule_date for records that don't have it (backward compatibility)
 	for i := range schedules {
 		if schedules[i].ScheduleDate == "" {
 			schedules[i].ScheduleDate = utils.ExtractScheduleDateFromTitle(schedules[i].Title)
