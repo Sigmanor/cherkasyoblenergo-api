@@ -183,6 +183,115 @@ Remove an API key permanently. Supply the admin password and target key in the r
 }
 ```
 
+### Register Webhook
+
+`POST /webhook`
+
+Register a webhook URL to receive automatic notifications when new power outage schedules are parsed. The webhook will be triggered whenever new schedule data is available.
+
+#### Request Body
+
+```json
+{
+  "webhook_url": "https://your-domain.com/webhook-endpoint"
+}
+```
+
+#### Response
+
+```json
+{
+  "message": "Webhook registered successfully",
+  "webhook_url": "https://your-domain.com/webhook-endpoint"
+}
+```
+
+#### Webhook Payload Format
+
+When a new schedule is available, your webhook will receive a POST request with the following payload. Each webhook notification contains exactly one schedule in the `schedules` array:
+
+```json
+{
+  "schedules": [
+    {
+      "id": 1234,
+      "news_id": 100,
+      "title": "Schedule for November 14",
+      "date": "2024-03-20T10:30:00Z",
+      "schedule_date": "2024-11-14",
+      "1_1": "text",
+      "1_2": "text",
+      "2_1": "text",
+      "2_2": "text",
+      "3_1": "text",
+      "3_2": "text",
+      "4_1": "text",
+      "4_2": "text",
+      "5_1": "text",
+      "5_2": "text",
+      "6_1": "text",
+      "6_2": "text"
+    }
+  ]
+}
+```
+
+**Note**: The `schedules` array will always contain exactly one schedule object. If multiple new schedules are parsed simultaneously, your webhook endpoint will receive multiple separate POST requests, one for each schedule.
+
+#### Webhook Headers
+
+Your webhook endpoint will receive these headers:
+
+- `Content-Type: application/json`
+- `X-Token: YOUR_API_KEY`
+
+### Delete Webhook
+
+`DELETE /webhook`
+
+Remove your webhook registration. This will disable automatic notifications for your API key.
+
+#### Response
+
+```json
+{
+  "message": "Webhook deleted successfully"
+}
+```
+
+### Get Webhook Status
+
+`GET /webhook`
+
+Check the current status of your webhook registration.
+
+#### Response
+
+```json
+{
+  "webhook_url": "https://your-domain.com/webhook-endpoint",
+  "webhook_enabled": true,
+  "webhook_failed_attempts": 0
+}
+```
+
+## Webhook Features
+
+### Automatic Retry Logic
+
+The webhook system includes automatic retry logic:
+- **First attempt**: Immediate delivery
+- **Second attempt**: 1 minute delay
+- **Third attempt**: 10 minutes delay
+
+### Automatic Disabling
+
+If your webhook endpoint fails to respond successfully (HTTP 200) for 3 consecutive attempts, the webhook will be automatically disabled to prevent further delivery attempts.
+
+### Integration with Schedule Parsing
+
+Webhooks are automatically triggered whenever new power outage schedules are parsed from the source website. Each new schedule triggers a separate webhook notification immediately after being saved to the database, ensuring you receive real-time updates without polling the API. If multiple schedules are parsed in a single parsing cycle, your endpoint will receive multiple individual webhook calls, one per schedule.
+
 ## Error Handling
 
 | Status Code | Description           | Example Response                         |
@@ -252,4 +361,27 @@ curl -X PATCH "https://api.example.com/cherkasyoblenergo/api/api-keys" \
 curl -X DELETE "https://api.example.com/cherkasyoblenergo/api/api-keys" \
   -H "Content-Type: application/json" \
   -d '{"admin_password":"YOUR_ADMIN_PASSWORD","key":"YOUR_KEY"}'
+```
+
+### Register Webhook
+
+```bash
+curl -X POST "https://api.example.com/cherkasyoblenergo/api/webhook" \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"webhook_url":"https://your-domain.com/webhook-endpoint"}'
+```
+
+### Delete Webhook
+
+```bash
+curl -X DELETE "https://api.example.com/cherkasyoblenergo/api/webhook" \
+  -H "X-API-Key: YOUR_API_KEY"
+```
+
+### Get Webhook Status
+
+```bash
+curl "https://api.example.com/cherkasyoblenergo/api/webhook" \
+  -H "X-API-Key: YOUR_API_KEY"
 ```

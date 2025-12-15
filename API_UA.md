@@ -185,6 +185,115 @@ X-API-Key: YOUR_API_KEY
 }
 ```
 
+### Зареєструвати Webhook
+
+`POST /webhook`
+
+Зареєструвати webhook URL для отримання автоматичних сповіщень про нові графіки відключень електроенергії. Webhook буде активований щоразу, коли з'являються нові дані розкладу.
+
+#### Тіло запиту
+
+```json
+{
+  "webhook_url": "https://your-domain.com/webhook-endpoint"
+}
+```
+
+#### Відповідь
+
+```json
+{
+  "message": "Webhook registered successfully",
+  "webhook_url": "https://your-domain.com/webhook-endpoint"
+}
+```
+
+#### Формат вебхук-пейлоаду
+
+Коли доступний новий розклад, ваш webhook отримає POST-запит з наступним вмістом. Кожне вебхук-сповіщення містить рівно один розклад у масиві `schedules`:
+
+```json
+{
+  "schedules": [
+    {
+      "id": 1234,
+      "news_id": 100,
+      "title": "Графік на 14 листопада",
+      "date": "2024-03-20T10:30:00Z",
+      "schedule_date": "2024-11-14",
+      "1_1": "текст",
+      "1_2": "текст",
+      "2_1": "текст",
+      "2_2": "текст",
+      "3_1": "текст",
+      "3_2": "текст",
+      "4_1": "текст",
+      "4_2": "текст",
+      "5_1": "текст",
+      "5_2": "текст",
+      "6_1": "текст",
+      "6_2": "текст"
+    }
+  ]
+}
+```
+
+**Примітка**: Масив `schedules` завжди міститиме рівно один об'єкт розкладу. Якщо кілька нових розкладів парсяться одночасно, ваш webhook endpoint отримає кілька окремих POST-запитів, по одному для кожного розкладу.
+
+#### Заголовки вебхуку
+
+Ваш webhook endpoint отримає ці заголовки:
+
+- `Content-Type: application/json`
+- `X-Token: YOUR_API_KEY`
+
+### Видалити Webhook
+
+`DELETE /webhook`
+
+Видалити реєстрацію webhook. Це вимкне автоматичні сповіщення для вашого API ключа.
+
+#### Відповідь
+
+```json
+{
+  "message": "Webhook deleted successfully"
+}
+```
+
+### Отримати статус Webhook
+
+`GET /webhook`
+
+Перевірити поточний статус реєстрації webhook.
+
+#### Відповідь
+
+```json
+{
+  "webhook_url": "https://your-domain.com/webhook-endpoint",
+  "webhook_enabled": true,
+  "webhook_failed_attempts": 0
+}
+```
+
+## Функції вебхуку
+
+### Автоматична логіка повторних спроб
+
+Система вебхуків включає автоматичну логіку повторних спроб:
+- **Перша спроба**: Негайна доставка
+- **Друга спроба**: Затримка 1 хвилина
+- **Третя спроба**: Затримка 10 хвилин
+
+### Автоматичне вимкнення
+
+Якщо ваш webhook endpoint не відповідає успішно (HTTP 200) протягом 3 послідовних спроб, webhook буде автоматично вимкнено, щоб запобігти подальшим спробам доставки.
+
+### Інтеграція з парсингом розкладу
+
+Вебхуки автоматично активуються щоразу, коли з джерельного вебсайту парсяться нові графіки відключень електроенергії. Кожен новий розклад викликає окреме вебхук-сповіщення одразу після збереження в базі даних, гарантуючи, що ви отримуєте оновлення в реальному часі без необхідності опитування API. Якщо кілька розкладів парсяться за один цикл парсингу, ваш endpoint отримає кілька окремих вебхук-викликів, по одному на кожен розклад.
+
 ## Обробка помилок
 
 | Status Code | Description           | Example Response                         |
@@ -254,4 +363,27 @@ curl -X PATCH "https://api.example.com/cherkasyoblenergo/api/api-keys" \
 curl -X DELETE "https://api.example.com/cherkasyoblenergo/api/api-keys" \
   -H "Content-Type: application/json" \
   -d '{"admin_password":"YOUR_ADMIN_PASSWORD","key":"YOUR_KEY"}'
+```
+
+### Зареєструвати Webhook
+
+```bash
+curl -X POST "https://api.example.com/cherkasyoblenergo/api/webhook" \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"webhook_url":"https://your-domain.com/webhook-endpoint"}'
+```
+
+### Видалити Webhook
+
+```bash
+curl -X DELETE "https://api.example.com/cherkasyoblenergo/api/webhook" \
+  -H "X-API-Key: YOUR_API_KEY"
+```
+
+### Отримати статус Webhook
+
+```bash
+curl "https://api.example.com/cherkasyoblenergo/api/webhook" \
+  -H "X-API-Key: YOUR_API_KEY"
 ```
