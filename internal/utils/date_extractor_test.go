@@ -6,8 +6,6 @@ import (
 	"time"
 )
 
-// Helper function to generate expected date in YYYY-MM-DD format
-// Uses same logic as ExtractScheduleDateFromTitle for year calculation
 func expectedScheduleDate(day, month int) string {
 	now := time.Now()
 	year := now.Year()
