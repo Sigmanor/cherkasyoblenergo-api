@@ -1,3 +1,15 @@
+# [1.11.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.10.0...v1.11.0) (2025-12-15)
+
+
+### Features
+
+* **api:** add webhook endpoints ([ea55d36](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/ea55d362bb465f00dab7277bfe74dde845b59494))
+* **handlers:** add webhook management handler ([c834892](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/c8348920b567b7f220c4ee5b2692163723a9645a))
+* **middleware:** expose API key helper ([7daedb7](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/7daedb7fc4e34f3d21c7fb4005f00374f162bf6a))
+* **models:** add webhook fields to api key ([43189da](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/43189da753fc081150666de989df635e7945f9e9))
+* **parser:** trigger webhook after saving schedule ([dff9d09](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/dff9d090205a9976c81e2c03ce072510a83adb37))
+* **webhook:** add webhook delivery helpers ([8b5efef](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/8b5efeff0fd758a114502766256565b4f3968a23))
+
 # [1.10.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.9.0...v1.10.0) (2025-12-07)
 
 
