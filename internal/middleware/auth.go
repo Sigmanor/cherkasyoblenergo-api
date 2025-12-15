@@ -35,3 +35,17 @@ func APIKeyAuth(db *gorm.DB) fiber.Handler {
 		return c.Next()
 	}
 }
+
+func GetAPIKeyFromContext(c *fiber.Ctx) (*models.APIKey, error) {
+	apiKeyValue := c.Locals("api_key")
+	if apiKeyValue == nil {
+		return nil, fiber.NewError(fiber.StatusUnauthorized, "Unauthorized")
+	}
+
+	apiKey, ok := apiKeyValue.(models.APIKey)
+	if !ok {
+		return nil, fiber.NewError(fiber.StatusUnauthorized, "Invalid API key")
+	}
+
+	return &apiKey, nil
+}
