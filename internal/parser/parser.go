@@ -15,6 +15,7 @@ import (
 
 	"cherkasyoblenergo-api/internal/models"
 	"cherkasyoblenergo-api/internal/utils"
+	"cherkasyoblenergo-api/internal/webhook"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/robfig/cron/v3"
@@ -132,6 +133,7 @@ func FetchAndStoreNews(db *gorm.DB, newsURL string) {
 			} else {
 				log.Printf("Successfully saved schedule data from news ID: %d", news.ID)
 				savedCount++
+				webhook.TriggerWebhooks(db, []models.Schedule{sch})
 			}
 		} else if err != nil {
 			log.Printf("Database error when checking news ID %d: %v", news.ID, err)
@@ -159,7 +161,6 @@ func normalizeSpaces(text string) string {
 	text = strings.ReplaceAll(text, "\u00a0", " ")
 	text = strings.ReplaceAll(text, "\u202f", " ")
 	text = strings.TrimSpace(text)
-	// Collapse multiple spaces into one to make regexp matching predictable.
 	for strings.Contains(text, "  ") {
 		text = strings.ReplaceAll(text, "  ", " ")
 	}
