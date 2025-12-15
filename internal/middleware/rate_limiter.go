@@ -14,7 +14,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// limiterEntry stores limiter with last DB check timestamp
 type limiterEntry struct {
 	limiter     *limiter.Limiter
 	rateLimit   int
@@ -43,7 +42,6 @@ func RateLimiter(db *gorm.DB) fiber.Handler {
 		var limiterInstance *limiter.Limiter
 
 		if !exists {
-			// Create new limiter
 			rate := limiter.Rate{Period: 1 * time.Minute, Limit: int64(apiKey.RateLimit)}
 			store := mem.NewStore()
 			limiterInstance = limiter.New(store, rate)
@@ -57,7 +55,6 @@ func RateLimiter(db *gorm.DB) fiber.Handler {
 			cachedEntry := entry.(*limiterEntry)
 			limiterInstance = cachedEntry.limiter
 
-			// Check if we need to refresh rate limit from DB (TTL expired)
 			if time.Since(cachedEntry.lastChecked) > rateLimitCacheTTL {
 				var updatedAPIKey models.APIKey
 				if err := db.Where("key = ?", apiKey.Key).First(&updatedAPIKey).Error; err != nil {
@@ -65,14 +62,12 @@ func RateLimiter(db *gorm.DB) fiber.Handler {
 				}
 
 				if updatedAPIKey.RateLimit != cachedEntry.rateLimit {
-					// Rate limit changed, create new limiter
 					rate := limiter.Rate{Period: 1 * time.Minute, Limit: int64(updatedAPIKey.RateLimit)}
 					store := mem.NewStore()
 					limiterInstance = limiter.New(store, rate)
 					log.Printf("Updated limiter for API key: %s with new rate limit: %d", maskAPIKey(apiKey.Key), updatedAPIKey.RateLimit)
 				}
 
-				// Update cache with new timestamp (and possibly new limiter)
 				limiterCache.Store(apiKey.Key, &limiterEntry{
 					limiter:     limiterInstance,
 					rateLimit:   updatedAPIKey.RateLimit,
