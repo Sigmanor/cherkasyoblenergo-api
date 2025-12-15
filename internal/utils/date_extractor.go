@@ -31,7 +31,6 @@ func ExtractScheduleDateFromTitle(title string) string {
 	now := time.Now()
 	year := now.Year()
 	
-	// If extracted month is after current month, assume previous year
 	if month > int(now.Month()) {
 		year--
 	}
