@@ -288,11 +288,9 @@ func TestGetSchedule_ScheduleDateField(t *testing.T) {
 
 	assert.NotNil(t, scheduleWithDate)
 	assert.Contains(t, scheduleWithDate, "schedule_date")
-	// schedule_date is now in YYYY-MM-DD format
 	scheduleDateStr, ok := scheduleWithDate["schedule_date"].(string)
 	assert.True(t, ok)
-	assert.Regexp(t, `^\d{4}-11-14$`, scheduleDateStr) // November 14, year varies
-
+	assert.Regexp(t, `^\d{4}-11-14$`, scheduleDateStr) 
 	assert.NotNil(t, scheduleWithoutDate)
 	assert.Contains(t, scheduleWithoutDate, "schedule_date")
 	assert.Equal(t, "", scheduleWithoutDate["schedule_date"])
@@ -802,7 +800,6 @@ func TestGetSchedule_ByScheduleDate_Success(t *testing.T) {
 	app := fiber.New()
 	app.Get("/schedule", GetSchedule(db))
 
-	// Get expected schedule_date for November 14 (from test data)
 	now := time.Now()
 	year := now.Year()
 	if 11 > int(now.Month()) {
@@ -824,7 +821,6 @@ func TestGetSchedule_ByScheduleDate_Success(t *testing.T) {
 	err = json.Unmarshal(bodyBytes, &responseBody)
 	assert.NoError(t, err)
 
-	// Should find the schedule with title "Графік погодинних відключень на 14 листопада"
 	for _, schedule := range responseBody {
 		scheduleDate, ok := schedule["schedule_date"].(string)
 		assert.True(t, ok)
@@ -960,7 +956,6 @@ func TestGetSchedule_ByScheduleDate_Today(t *testing.T) {
 	var responseBody []map[string]interface{}
 	err = json.Unmarshal(bodyBytes, &responseBody)
 	assert.NoError(t, err)
-	// May or may not have results depending on test data, but should not error
 }
 
 func TestGetSchedule_ByScheduleDate_Tomorrow(t *testing.T) {
