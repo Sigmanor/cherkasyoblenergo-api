@@ -15,22 +15,6 @@ Unofficial API service for retrieving power outage schedules from [cherkasyoblen
 
 </div>
 
-## 📋 Table of Contents
-
-- [Cherkasyoblenergo API](#cherkasyoblenergo-api)
-  - [📋 Table of Contents](#-table-of-contents)
-  - [✨ Key Features](#-key-features)
-  - [🚀 Installation](#-installation)
-    - [Prerequisites](#prerequisites)
-    - [Setup](#setup)
-    - [Building](#building)
-  - [🔑 API Documentation](#-api-documentation)
-    - [Base URL](#base-url)
-    - [Available Endpoints](#available-endpoints)
-    - [Webhook Notifications](#webhook-notifications)
-  - [🚦 Running Tests](#-running-tests)
-  - [⚡ Free API Access](#-free-api-access)
-
 ## ✨ Key Features
 
 - Real-time power outage schedule data
