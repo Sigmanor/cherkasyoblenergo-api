@@ -27,6 +27,7 @@ Unofficial API service for retrieving power outage schedules from [cherkasyoblen
   - [🔑 API Documentation](#-api-documentation)
     - [Base URL](#base-url)
     - [Available Endpoints](#available-endpoints)
+    - [Webhook Notifications](#webhook-notifications)
   - [🚦 Running Tests](#-running-tests)
   - [⚡ Free API Access](#-free-api-access)
 
@@ -37,6 +38,7 @@ Unofficial API service for retrieving power outage schedules from [cherkasyoblen
 - RESTful API interface
 - Rate limiting support
 - API key authentication
+- Webhook notifications
 
 ## 🚀 Installation
 
@@ -102,8 +104,22 @@ go build -o cherkasyoblenergo_api ./cmd/server/main.go
 - `POST /api-keys` - Create API key (admin only)
 - `PATCH /api-keys` - Rotate key or update rate limit (admin only)
 - `DELETE /api-keys` - Delete API key (admin only)
+- `POST /webhook` - Register webhook URL
+- `DELETE /webhook` - Delete webhook
+- `GET /webhook` - Get webhook status
 
 [Detailed API Documentation](API.md)
+
+### Webhook Notifications
+
+The API supports webhook notifications that automatically send new power outage schedules to your endpoint whenever they become available:
+
+- **Automatic delivery** - Get notified immediately when new schedules are parsed
+- **Retry logic** - Failed deliveries are retried with exponential backoff
+- **Automatic disabling** - Webhooks are disabled after 3 consecutive failures
+- **Secure headers** - Includes authentication token for verification
+
+Register your webhook URL via `POST /webhook` and receive real-time updates without polling.
 
 ## 🚦 Running Tests
 
@@ -115,4 +131,4 @@ go test ./...
 
 ## ⚡ Free API Access
 
-Since I host the app for my own needs, I can provide you with limited access (6 req/min) to the API for free. Contact via [email](mailto:dock-brunt-rarity@duck.com) for access.
+Since I host the app for my own needs, I can provide you with limited access (6 req/min) to the API and webhook notifications for free. Contact via [email](mailto:dock-brunt-rarity@duck.com) for access.
