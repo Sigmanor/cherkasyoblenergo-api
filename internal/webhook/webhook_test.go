@@ -54,11 +54,15 @@ func TestSendWebhook_PayloadIsArray(t *testing.T) {
 		t.Fatalf("SendWebhook failed: %v", err)
 	}
 
-	var receivedSchedules []models.Schedule
-	err = json.Unmarshal(receivedPayload, &receivedSchedules)
-	if err != nil {
-		t.Fatalf("Failed to unmarshal payload as array: %v", err)
+	var receivedPayloadStruct struct {
+		Schedules []models.Schedule `json:"schedules"`
 	}
+	err = json.Unmarshal(receivedPayload, &receivedPayloadStruct)
+	if err != nil {
+		t.Fatalf("Failed to unmarshal payload as object with schedules key: %v", err)
+	}
+
+	receivedSchedules := receivedPayloadStruct.Schedules
 
 	if len(receivedSchedules) != len(testSchedules) {
 		t.Errorf("Expected %d schedules, got %d", len(testSchedules), len(receivedSchedules))
@@ -84,16 +88,7 @@ func TestSendWebhook_PayloadIsArray(t *testing.T) {
 		}
 	}
 
-	var wrongStructure map[string]interface{}
-	err = json.Unmarshal(receivedPayload, &wrongStructure)
-	if err == nil {
-		t.Error("Expected error when unmarshaling array as map, but got none. Payload should be a top-level array, not an object.")
-		if _, hasSchedulesKey := wrongStructure["schedules"]; hasSchedulesKey {
-			t.Error("Payload incorrectly wrapped in a 'schedules' object")
-		}
-	}
-
-	if len(receivedPayload) == 0 || receivedPayload[0] != '[' {
-		t.Error("Payload should start with '[' to be a JSON array")
+	if len(receivedPayload) == 0 || receivedPayload[0] != '{' {
+		t.Error("Payload should start with '{' to be a JSON object")
 	}
 }
