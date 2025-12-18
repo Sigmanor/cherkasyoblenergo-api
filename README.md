@@ -28,7 +28,7 @@ Unofficial API service for retrieving power outage schedules from [cherkasyoblen
 
 ### Prerequisites
 
-- Go 1.23 or higher
+- Go 1.24 or higher
 - PostgreSQL 17
 
 ### Setup
