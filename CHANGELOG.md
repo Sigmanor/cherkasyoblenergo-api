@@ -1,3 +1,10 @@
+## [1.11.1](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.11.0...v1.11.1) (2025-12-24)
+
+
+### Bug Fixes
+
+* **handlers:** order schedule query by id ([1e6dfdf](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/1e6dfdf99e5ec76c965da4167e277a6babf1be9f))
+
 # [1.11.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.10.0...v1.11.0) (2025-12-15)
 
 
