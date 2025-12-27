@@ -8,6 +8,10 @@ on:
         required: false
         default: false
         type: boolean
+      version:
+        description: 'Manual release version (e.g. 1.2.3). Leave empty for auto-generation.'
+        required: false
+        type: string
 
 jobs:
   release:
@@ -37,9 +41,35 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
-          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
-            echo "Running in dry-run mode..."
-            npx semantic-release --dry-run
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+            echo "Manual release triggered for version: $VERSION"
+            
+            if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+              echo "[Dry Run] Would configure git user"
+              echo "[Dry Run] Would bump version to $VERSION"
+              echo "[Dry Run] Would push changes and tag v$VERSION"
+              echo "[Dry Run] Would create GitHub release v$VERSION"
+            else
+              # Configure git
+              git config user.name "github-actions[bot]"
+              git config user.email "github-actions[bot]@users.noreply.github.com"
+              
+              # Update version and tag (npm version creates the tag v$VERSION by default if not configured otherwise)
+              # Using --message to match standard format if desired, but default is "v%s"
+              npm version $VERSION -m "chore(release): %s [skip ci]"
+              
+              # Push commits and tags
+              git push origin HEAD --tags
+              
+              # Create GitHub Release
+              gh release create v$VERSION --generate-notes
+            fi
           else
-            npx semantic-release
+            if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+              echo "Running in dry-run mode..."
+              npx semantic-release --dry-run
+            else
+              npx semantic-release
+            fi
           fi
