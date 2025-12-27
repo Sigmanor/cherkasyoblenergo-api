@@ -69,7 +69,9 @@ jobs:
             cd "$REPO_FOLDER"
 
             echo "Setting up .env file..."
-            echo "${{ secrets.ENV_PROD }}" > .env
+            cat <<'EOF' > .env
+            ${{ secrets.ENV_PROD }}
+            EOF
 
             echo "Determining version from Git tags..."
             APP_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "dev")
