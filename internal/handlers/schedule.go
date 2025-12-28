@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"cherkasyoblenergo-api/internal/cache"
 	"cherkasyoblenergo-api/internal/models"
 	"cherkasyoblenergo-api/internal/utils"
 	"fmt"
@@ -111,8 +112,18 @@ func resolveDateValue(dateStr string) string {
 	}
 }
 
-func handleScheduleRequest(c *fiber.Ctx, db *gorm.DB, filter ScheduleFilter) error {
+func handleScheduleRequest(c *fiber.Ctx, db *gorm.DB, filter ScheduleFilter, scheduleCache *cache.ScheduleCache) error {
 	filter.Date = resolveDateValue(filter.Date)
+
+	cacheKey := fmt.Sprintf("%s:%s:%d:%s", filter.Option, filter.Date, filter.Limit, filter.Queue)
+
+	if cached, found := scheduleCache.Get(cacheKey); found {
+		cacheTTL := int(scheduleCache.TTL().Seconds())
+		c.Set("Cache-Control", fmt.Sprintf("public, max-age=%d", cacheTTL))
+		c.Set("X-Cache", "HIT")
+		return c.JSON(cached)
+	}
+
 	var schedules []models.Schedule
 	query := db.Table("schedules")
 	switch filter.Option {
@@ -188,14 +199,23 @@ func handleScheduleRequest(c *fiber.Ctx, db *gorm.DB, filter ScheduleFilter) err
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
+	var response interface{}
 	if len(validatedQueues) == 0 {
-		return c.JSON(schedules)
+		response = schedules
+	} else {
+		response = buildFilteredResponse(schedules, validatedQueues)
 	}
 
-	return c.JSON(buildFilteredResponse(schedules, validatedQueues))
+	scheduleCache.Set(cacheKey, response)
+
+	cacheTTL := int(scheduleCache.TTL().Seconds())
+	c.Set("Cache-Control", fmt.Sprintf("public, max-age=%d", cacheTTL))
+	c.Set("X-Cache", "MISS")
+
+	return c.JSON(response)
 }
 
-func GetSchedule(db *gorm.DB) fiber.Handler {
+func GetSchedule(db *gorm.DB, scheduleCache *cache.ScheduleCache) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		filter := ScheduleFilter{
 			Option: c.Query("option"),
@@ -211,6 +231,6 @@ func GetSchedule(db *gorm.DB) fiber.Handler {
 			filter.Limit = limit
 		}
 
-		return handleScheduleRequest(c, db, filter)
+		return handleScheduleRequest(c, db, filter, scheduleCache)
 	}
 }
