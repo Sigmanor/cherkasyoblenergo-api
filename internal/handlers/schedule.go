@@ -19,7 +19,7 @@ func GetAPIInfo() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
 			"name":    "Cherkasyoblenergo Blackout Schedule API",
-			"version": config.AppVersion,
+			"version": strings.TrimPrefix(config.AppVersion, "v"),
 			"endpoints": fiber.Map{
 				"blackout-schedule": fiber.Map{
 					"path":        "/cherkasyoblenergo/api/blackout-schedule",
