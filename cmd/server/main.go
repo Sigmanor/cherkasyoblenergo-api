@@ -73,6 +73,7 @@ func runServer() error {
 	app.Use(middleware.Logger())
 
 	api := app.Group("/cherkasyoblenergo/api")
+	api.Get("/", handlers.GetAPIInfo())
 	api.Get("/blackout-schedule", handlers.GetSchedule(db, scheduleCache))
 
 	ctx, cancel := context.WithCancel(context.Background())

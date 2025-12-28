@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"cherkasyoblenergo-api/internal/cache"
+	"cherkasyoblenergo-api/internal/config"
 	"cherkasyoblenergo-api/internal/models"
 	"cherkasyoblenergo-api/internal/utils"
 	"fmt"
@@ -13,6 +14,68 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
+
+func GetAPIInfo() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"name":    "Cherkasyoblenergo Blackout Schedule API",
+			"version": config.AppVersion,
+			"endpoints": fiber.Map{
+				"blackout-schedule": fiber.Map{
+					"path":        "/cherkasyoblenergo/api/blackout-schedule",
+					"method":      "GET",
+					"description": "Get electricity blackout schedules",
+					"parameters": []fiber.Map{
+						{
+							"name":        "option",
+							"type":        "string",
+							"required":    true,
+							"description": "Filter option",
+							"values":      []string{"all", "latest_n", "by_date", "by_schedule_date"},
+						},
+						{
+							"name":        "date",
+							"type":        "string",
+							"required":    false,
+							"description": "Date in YYYY-MM-DD format, or 'today', 'tomorrow'",
+						},
+						{
+							"name":        "limit",
+							"type":        "integer",
+							"required":    false,
+							"description": "Number of records to return (for latest_n and by_schedule_date options)",
+						},
+						{
+							"name":        "queue",
+							"type":        "string",
+							"required":    false,
+							"description": "Filter by specific queues (e.g. '1_1,2_1,3_2'). Format: X_Y where X is 1-6 and Y is 1-2",
+						},
+					},
+					"examples": []fiber.Map{
+						{
+							"description": "Get all schedules",
+							"url":         "/cherkasyoblenergo/api/blackout-schedule?option=all",
+						},
+						{
+							"description": "Get latest 5 schedules",
+							"url":         "/cherkasyoblenergo/api/blackout-schedule?option=latest_n&limit=5",
+						},
+						{
+							"description": "Get schedule for today",
+							"url":         "/cherkasyoblenergo/api/blackout-schedule?option=by_schedule_date&date=today",
+						},
+						{
+							"description": "Get schedule for specific date with queue filter",
+							"url":         "/cherkasyoblenergo/api/blackout-schedule?option=by_schedule_date&date=2024-01-15&queue=1_1,2_1",
+						},
+					},
+				},
+			},
+			"source": "https://github.com/sigmanor/cherkasyoblenergo-api",
+		})
+	}
+}
 
 type ScheduleFilter struct {
 	Option string `json:"option"`
