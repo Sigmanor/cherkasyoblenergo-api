@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -11,11 +12,11 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"cherkasyoblenergo-api/internal/models"
 	"cherkasyoblenergo-api/internal/utils"
-	"cherkasyoblenergo-api/internal/webhook"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/robfig/cron/v3"
@@ -51,7 +52,7 @@ func StartCron(db *gorm.DB, newsURL string) *cron.Cron {
 	}
 
 	intervalStr := os.Getenv("PARSING_INTERVAL_MINUTES")
-	interval := 10
+	interval := 5
 	if intervalStr != "" {
 		if parsed, err := strconv.Atoi(intervalStr); err == nil && parsed > 0 {
 			interval = parsed
@@ -60,15 +61,35 @@ func StartCron(db *gorm.DB, newsURL string) *cron.Cron {
 	cronSchedule := "@every " + strconv.Itoa(interval) + "m"
 
 	c := cron.New()
-	c.AddFunc(cronSchedule, func() { FetchAndStoreNews(db, newsURL) })
+	c.AddFunc(cronSchedule, func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+		defer cancel()
+		FetchAndStoreNews(ctx, db, newsURL)
+	})
 
 	c.Start()
 	return c
 }
 
-func FetchAndStoreNews(db *gorm.DB, newsURL string) {
+var isParsing int32
+
+func FetchAndStoreNews(ctx context.Context, db *gorm.DB, newsURL string) {
+	if !atomic.CompareAndSwapInt32(&isParsing, 0, 1) {
+		log.Println("Parsing job already running, skipping")
+		return
+	}
+	defer atomic.StoreInt32(&isParsing, 0)
+
 	log.Println("Starting news parsing")
-	resp, err := http.Get(newsURL)
+
+	req, err := http.NewRequestWithContext(ctx, "GET", newsURL, nil)
+	if err != nil {
+		log.Printf("Failed to create request: %v", err)
+		return
+	}
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("Failed to fetch data: %v", err)
 		return
@@ -133,7 +154,6 @@ func FetchAndStoreNews(db *gorm.DB, newsURL string) {
 			} else {
 				log.Printf("Successfully saved schedule data from news ID: %d", news.ID)
 				savedCount++
-				webhook.TriggerWebhooks(db, []models.Schedule{sch})
 			}
 		} else if err != nil {
 			log.Printf("Database error when checking news ID %d: %v", news.ID, err)
