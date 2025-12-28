@@ -19,15 +19,20 @@ func HTTPSEnforcement() fiber.Handler {
 		if c.Protocol() == "https" {
 			return c.Next()
 		}
-		
+
 		if c.Get("X-Forwarded-Proto") == "https" {
 			return c.Next()
 		}
 
+		cfVisitor := c.Get("CF-Visitor")
+		if strings.Contains(cfVisitor, "https") {
+			return c.Next()
+		}
+
 		target := "https://" + c.Hostname() + c.OriginalURL()
-		
+
 		if strings.Contains(c.Hostname(), "localhost") {
-			return c.Next() 
+			return c.Next()
 		}
 
 		log.Printf("Redirecting to HTTPS: %s", target)
