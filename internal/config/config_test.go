@@ -11,7 +11,7 @@ import (
 func TestLoadConfig_Success(t *testing.T) {
 	viper.Reset()
 
-	envVars := []string{"DB_HOST", "DB_PORT", "DB_USER", "DB_PASSWORD", "DB_NAME", "ADMIN_PASSWORD", "SERVER_PORT"}
+	envVars := []string{"DB_HOST", "DB_PORT", "DB_USER", "DB_PASSWORD", "DB_NAME", "SERVER_PORT"}
 	oldEnv := make(map[string]string)
 	for _, key := range envVars {
 		oldEnv[key] = os.Getenv(key)
@@ -37,8 +37,9 @@ DB_PORT=5432
 DB_USER=testuser
 DB_PASSWORD=testpass
 DB_NAME=testdb
-ADMIN_PASSWORD=adminpass
 SERVER_PORT=8080
+RATE_LIMIT_PER_MINUTE=30
+CACHE_TTL_SECONDS=120
 `)
 	envFile := filepath.Join(tempDir, ".env")
 	if err := os.WriteFile(envFile, envContent, 0o644); err != nil {
@@ -65,11 +66,63 @@ SERVER_PORT=8080
 	if cfg.DBName != "testdb" {
 		t.Errorf("expected DBName 'testdb', got '%s'", cfg.DBName)
 	}
-	if cfg.AdminPassword != "adminpass" {
-		t.Errorf("expected AdminPassword 'adminpass', got '%s'", cfg.AdminPassword)
-	}
 	if cfg.ServerPort != "8080" {
 		t.Errorf("expected SERVER_PORT '8080', got '%s'", cfg.ServerPort)
+	}
+	if cfg.RateLimitPerMinute != 30 {
+		t.Errorf("expected RateLimitPerMinute 30, got %d", cfg.RateLimitPerMinute)
+	}
+	if cfg.CacheTTLSeconds != 120 {
+		t.Errorf("expected CacheTTLSeconds 120, got %d", cfg.CacheTTLSeconds)
+	}
+}
+
+func TestLoadConfig_Defaults(t *testing.T) {
+	viper.Reset()
+
+	envVars := []string{"DB_HOST", "DB_PORT", "DB_USER", "DB_PASSWORD", "DB_NAME", "SERVER_PORT", "RATE_LIMIT_PER_MINUTE", "CACHE_TTL_SECONDS"}
+	oldEnv := make(map[string]string)
+	for _, key := range envVars {
+		oldEnv[key] = os.Getenv(key)
+		os.Unsetenv(key)
+	}
+	defer func() {
+		for key, val := range oldEnv {
+			if val != "" {
+				os.Setenv(key, val)
+			}
+		}
+		viper.Reset()
+	}()
+
+	tempDir, err := os.MkdirTemp("", "configtest")
+	if err != nil {
+		t.Fatalf("failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	envContent := []byte(`DB_HOST=localhost
+DB_PORT=5432
+DB_USER=testuser
+DB_PASSWORD=testpass
+DB_NAME=testdb
+SERVER_PORT=8080
+`)
+	envFile := filepath.Join(tempDir, ".env")
+	if err := os.WriteFile(envFile, envContent, 0o644); err != nil {
+		t.Fatalf("failed to write .env file: %v", err)
+	}
+
+	cfg, err := LoadConfig(tempDir)
+	if err != nil {
+		t.Fatalf("LoadConfig failed: %v", err)
+	}
+
+	if cfg.RateLimitPerMinute != 60 {
+		t.Errorf("expected default RateLimitPerMinute 60, got %d", cfg.RateLimitPerMinute)
+	}
+	if cfg.CacheTTLSeconds != 60 {
+		t.Errorf("expected default CacheTTLSeconds 60, got %d", cfg.CacheTTLSeconds)
 	}
 }
 
