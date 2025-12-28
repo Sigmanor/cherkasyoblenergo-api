@@ -4,7 +4,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-const AppVersion = "dev"
+var AppVersion = "dev"
 
 type Config struct {
 	DBHost     string `mapstructure:"DB_HOST"`
