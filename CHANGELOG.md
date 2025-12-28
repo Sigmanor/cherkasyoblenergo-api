@@ -1,3 +1,10 @@
+## [2.2.1](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v2.2.0...v2.2.1) (2025-12-28)
+
+
+### Bug Fixes
+
+* **api:** trim version prefix in api info ([a31ad24](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/a31ad2450e5ec0c39992efd29e9a41d32902a2a8))
+
 # [2.2.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v2.1.0...v2.2.0) (2025-12-28)
 
 
