@@ -4,12 +4,16 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strings"
+	"time"
 
 	"cherkasyoblenergo-api/internal/config"
+	"cherkasyoblenergo-api/internal/logger"
 
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	gormlogger "gorm.io/gorm/logger"
 )
 
 const defaultDBName = "cherkasyoblenergo"
@@ -68,7 +72,28 @@ func ConnectDB(cfg config.Config) (*gorm.DB, error) {
 
 	targetDBName := getDBName(cfg)
 	dsn := createDSN(cfg, targetDBName)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+
+	var gormLogLevel gormlogger.LogLevel
+	switch strings.ToLower(cfg.LogLevel) {
+	case "silent":
+		gormLogLevel = gormlogger.Silent
+	case "error":
+		gormLogLevel = gormlogger.Error
+	case "warn", "warning":
+		gormLogLevel = gormlogger.Warn
+	case "info":
+		gormLogLevel = gormlogger.Warn
+	case "debug":
+		gormLogLevel = gormlogger.Info
+	default:
+		gormLogLevel = gormlogger.Info
+	}
+
+	newLogger := logger.NewGormLogger(gormLogLevel, time.Second)
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: newLogger,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database '%s': %w", targetDBName, err)
 	}
