@@ -1,6 +1,14 @@
 package main
 
 import (
+	"cherkasyoblenergo-api/internal/cache"
+	"cherkasyoblenergo-api/internal/config"
+	"cherkasyoblenergo-api/internal/database"
+	"cherkasyoblenergo-api/internal/handlers"
+	"cherkasyoblenergo-api/internal/logger"
+	"cherkasyoblenergo-api/internal/middleware"
+	"cherkasyoblenergo-api/internal/models"
+	"cherkasyoblenergo-api/internal/parser"
 	"context"
 	"fmt"
 	"log"
@@ -9,15 +17,11 @@ import (
 	"syscall"
 	"time"
 
-	"cherkasyoblenergo-api/internal/config"
-	"cherkasyoblenergo-api/internal/database"
-	"cherkasyoblenergo-api/internal/handlers"
-	"cherkasyoblenergo-api/internal/middleware"
-	"cherkasyoblenergo-api/internal/models"
-	"cherkasyoblenergo-api/internal/parser"
-
 	"github.com/gofiber/fiber/v2"
+	fiberrecover "github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/joho/godotenv"
+	"gorm.io/gorm"
+	gormlogger "gorm.io/gorm/logger"
 )
 
 func runServer() error {
@@ -26,41 +30,45 @@ func runServer() error {
 		return err
 	}
 
+	logger.SetupGlobal(cfg.LogLevel)
+
 	db, err := database.ConnectDB(cfg)
 	if err != nil {
 		return fmt.Errorf("failed to initialize database, got error %w", err)
 	}
 
 	log.Println("Running database migrations...")
-	if err := db.AutoMigrate(&models.Schedule{}, &models.APIKey{}); err != nil {
+	if err := db.Session(&gorm.Session{Logger: gormlogger.Default.LogMode(gormlogger.Silent)}).AutoMigrate(&models.Schedule{}, &models.IPRateLimit{}); err != nil {
 		return fmt.Errorf("failed to run database migrations: %w", err)
 	}
 	log.Println("Database migrations completed successfully")
 
-	newsURL := os.Getenv("NEWS_URL")
-	if newsURL == "" {
-		return fmt.Errorf("NEWS_URL environment variable is required")
-	}
+	cronScheduler := parser.StartCron(db, cfg.NewsURL)
 
-	cronScheduler := parser.StartCron(db, newsURL)
+	scheduleCache := cache.NewScheduleCache(cfg.CacheTTLSeconds)
+
+	rateLimiter := middleware.NewIPRateLimiter(db, cfg.RateLimitPerMinute)
 
 	app := fiber.New()
-	app.Use(middleware.APIKeyAuth(db))
-	app.Use(middleware.RateLimiter(db))
+	app.Use(fiberrecover.New())
+	app.Use(middleware.HTTPSEnforcement())
+	app.Use(middleware.APIKeyAuth(cfg.APIKey))
+	app.Use(rateLimiter.Middleware())
 	app.Use(middleware.Logger())
 
 	api := app.Group("/cherkasyoblenergo/api")
-	api.Get("/blackout-schedule", handlers.GetSchedule(db))
-	api.Post("/api-keys", handlers.CreateAPIKey(db, cfg))
-	api.Patch("/api-keys", handlers.UpdateAPIKey(db, cfg))
-	api.Delete("/api-keys", handlers.DeleteAPIKey(db, cfg))
-	api.Post("/webhook", handlers.RegisterWebhook(db))
-	api.Delete("/webhook", handlers.DeleteWebhook(db))
-	api.Get("/webhook", handlers.GetWebhookStatus(db))
+	api.Get("/blackout-schedule", handlers.GetSchedule(db, scheduleCache))
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	app.Hooks().OnListen(func(data fiber.ListenData) error {
 		log.Println("Server started, running initial news parsing")
-		go parser.FetchAndStoreNews(db, newsURL)
+		go func() {
+			parseCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+			defer cancel()
+			parser.FetchAndStoreNews(parseCtx, db, cfg.NewsURL)
+		}()
 		return nil
 	})
 
@@ -70,16 +78,20 @@ func runServer() error {
 	go func() {
 		<-quit
 		log.Println("Received shutdown signal, gracefully shutting down...")
+		cancel()
+
+		rateLimiter.Stop()
+		log.Println("Rate limiter stopped")
 
 		if cronScheduler != nil {
 			cronScheduler.Stop()
 			log.Println("Cron scheduler stopped")
 		}
 
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
+		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer shutdownCancel()
 
-		if err := app.ShutdownWithContext(ctx); err != nil {
+		if err := app.ShutdownWithContext(shutdownCtx); err != nil {
 			log.Printf("Error during server shutdown: %v", err)
 		}
 	}()
