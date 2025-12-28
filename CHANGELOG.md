@@ -1,3 +1,32 @@
+# [2.0.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.11.1...v2.0.0) (2025-12-28)
+
+
+### Features
+
+* **cache:** add schedule cache implementation ([23f57b9](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/23f57b9))
+* **config:** add runtime defaults ([b330c4d](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/b330c4d))
+* **db:** configure gorm logger ([d560efa](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/d560efa))
+* **handlers:** add schedule response caching ([a1c54c4](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/a1c54c4))
+* **logger:** add global logger setup ([d57ecd6](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/d57ecd6))
+* **logger:** add gorm adapter ([cac23a7](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/cac23a7))
+* **metrics:** add fiber metrics middleware ([a4291ee](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/a4291ee))
+* **middleware:** add https enforcement middleware ([3275ecc](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/3275ecc))
+* **middleware:** add ip rate limiter middleware ([b8a5a2c](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/b8a5a2c))
+* **middleware:** add optional api key auth ([5918f1d](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/5918f1d))
+* **models:** add ip rate limit model ([53b8193](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/53b8193))
+* **server:** improve startup and middleware ([46d763f](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/46d763f))
+
+
+### Bug Fixes
+
+* **parser:** guard parsing with context ([c6867f8](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/c6867f8))
+
+
+### BREAKING CHANGES
+
+* Major refactoring of middleware stack, logger system, and caching layer
+
+
 ## [1.11.1](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.11.0...v1.11.1) (2025-12-24)
 
 
