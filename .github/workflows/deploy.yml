@@ -100,7 +100,7 @@ jobs:
             fi
 
             echo "Building and starting application..."
-            docker compose -f docker-compose.app.yml build --build-arg APP_VERSION=$APP_VERSION
+            export APP_VERSION
             docker compose -f docker-compose.app.yml up -d --no-deps --build
 
             echo "Deployment complete!"
