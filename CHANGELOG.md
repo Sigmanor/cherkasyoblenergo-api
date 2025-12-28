@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v2.1.0...v2.2.0) (2025-12-28)
+
+
+### Features
+
+* **server:** add api info endpoint ([554e11b](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/554e11b072357989e24014562062fc4fe5185a34))
+
 # [2.1.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v2.0.0...v2.1.0) (2025-12-28)
 
 
