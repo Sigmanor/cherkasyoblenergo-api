@@ -73,6 +73,7 @@ https://hue.pp.ua/cherkasyoblenergo/api/
    | `LOG_LEVEL` | Ні | `info` | Рівень логування (`debug`, `info`, `warn`, `error`) |
    | `FORCE_HTTPS` | Ні | `false` | Перенаправляти HTTP на HTTPS |
    | `API_KEY` | Ні | - | Якщо встановлено, вмикає автентифікацію за API ключем |
+   | `PROXY_MODE` | Ні | `none` | Режим проксі для визначення реального IP клієнта: `cloudflare`, `standard` або `none` |
 
 4. **Запустіть додаток**
 

@@ -73,6 +73,7 @@ Feel free to use it for your projects. However, please note that this instance i
    | `LOG_LEVEL` | No | `info` | Logging level (`debug`, `info`, `warn`, `error`) |
    | `FORCE_HTTPS` | No | `false` | Redirect HTTP to HTTPS |
    | `API_KEY` | No | - | If set, enables API key authentication |
+   | `PROXY_MODE` | No | `none` | Proxy mode for real client IP detection: `cloudflare`, `standard`, or `none` |
 
 4. **Run the application**
 
