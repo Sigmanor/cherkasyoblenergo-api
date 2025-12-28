@@ -25,6 +25,9 @@ https://hue.pp.ua/cherkasyoblenergo/api/
 
 Feel free to use it for your projects. However, please note that this instance is provided "as is" without any guarantees of availability or uptime. For production use cases or if you need reliability, consider self-hosting your own instance.
 
+> [!NOTE]
+> This public instance has a rate limit of 30 requests per minute per IP address.
+
 ## Features
 
 - Real-time power outage schedule data
