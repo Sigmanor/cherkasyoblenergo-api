@@ -11,20 +11,30 @@
 [![Releases](https://img.shields.io/github/release/Sigmanor/cherkasyoblenergo-api.svg)](https://github.com/Sigmanor/cherkasyoblenergo-api/releases)
 [![Changelog](https://img.shields.io/badge/changelog-md-blue)](CHANGELOG.md)
 
-Unofficial API service for retrieving power outage schedules from [cherkasyoblenergo.com](https://cherkasyoblenergo.com/). Get real-time and historical power outage information through a RESTful API interface.
+**Open public API** for retrieving power outage schedules from [cherkasyoblenergo.com](https://cherkasyoblenergo.com/)
 
 </div>
 
-## ✨ Key Features
+## Public Instance
+
+A public instance of this API is available at:
+
+```
+https://hue.pp.ua/cherkasyoblenergo/api/
+```
+
+Feel free to use it for your projects. However, please note that this instance is provided "as is" without any guarantees of availability or uptime. For production use cases or if you need reliability, consider self-hosting your own instance.
+
+## Features
 
 - Real-time power outage schedule data
 - Historical data access
 - RESTful API interface
-- Rate limiting support
-- API key authentication
-- Webhook notifications
+- IP-based rate limiting
+- Response caching
+- Optional API key authentication
 
-## 🚀 Installation
+## Installation
 
 ### Prerequisites
 
@@ -35,28 +45,34 @@ Unofficial API service for retrieving power outage schedules from [cherkasyoblen
 
 1. **Install PostgreSQL 17**
 
-   Follow the [official PostgreSQL installation guide](https://www.postgresql.org/download/) to install PostgreSQL on your system.
+   Follow the [official PostgreSQL installation guide](https://www.postgresql.org/download/).
 
 2. **Clone the repository**
 
    ```bash
-   git clone https://github.com/Sigmanor/cherkasyoblenergo-api.git
+   git clone https://github.com/sigmanor/cherkasyoblenergo-api.git
    cd cherkasyoblenergo-api
    ```
 
 3. **Configure environment variables**
 
-   Create a `.env` file in the root directory:
+   Create a `.env` file in the root directory. See the table below for all available options:
 
-   ```properties
-   DB_HOST=localhost
-   DB_PORT=5432
-   DB_USER=root
-   DB_PASSWORD=your_strong_db_password
-   DB_NAME=myCoolDB
-   ADMIN_PASSWORD=your_strong_admin_password
-   SERVER_PORT=3000
-   ```
+   | Variable | Required | Default | Description |
+   |----------|----------|---------|-------------|
+   | `DB_HOST` | Yes | - | PostgreSQL host |
+   | `DB_PORT` | Yes | - | PostgreSQL port |
+   | `DB_USER` | Yes | - | PostgreSQL username |
+   | `DB_PASSWORD` | Yes | - | PostgreSQL password |
+   | `DB_NAME` | Yes | - | PostgreSQL database name |
+   | `SERVER_PORT` | No | `8080` | Port for the API server |
+   | `NEWS_URL` | No | `https://gita.cherkasyoblenergo.com/obl-main-controller/api/news2?size=18&category=1&page=0` | URL to parse schedules from |
+   | `PARSING_INTERVAL_MINUTES` | No | `5` | How often to check for new schedules (minutes) |
+   | `RATE_LIMIT_PER_MINUTE` | No | `60` | Max requests per minute per IP |
+   | `CACHE_TTL_SECONDS` | No | `60` | Response cache duration in seconds |
+   | `LOG_LEVEL` | No | `info` | Logging level (`debug`, `info`, `warn`, `error`) |
+   | `FORCE_HTTPS` | No | `false` | Redirect HTTP to HTTPS |
+   | `API_KEY` | No | - | If set, enables API key authentication |
 
 4. **Run the application**
 
@@ -64,17 +80,13 @@ Unofficial API service for retrieving power outage schedules from [cherkasyoblen
    go run ./cmd/server/main.go
    ```
 
-   The application will automatically create the required database on first run.
-
 ### Building
-
-To build the application for production:
 
 ```bash
 go build -o cherkasyoblenergo_api ./cmd/server/main.go
 ```
 
-## 🔑 API Documentation
+## API Documentation
 
 ### Base URL
 
@@ -82,37 +94,141 @@ go build -o cherkasyoblenergo_api ./cmd/server/main.go
 /cherkasyoblenergo/api
 ```
 
-### Available Endpoints
+### Get Power Outage Schedule
 
-- `GET /blackout-schedule` - Get power outage schedules
-- `POST /api-keys` - Create API key (admin only)
-- `PATCH /api-keys` - Rotate key or update rate limit (admin only)
-- `DELETE /api-keys` - Delete API key (admin only)
-- `POST /webhook` - Register webhook URL
-- `DELETE /webhook` - Delete webhook
-- `GET /webhook` - Get webhook status
+```
+GET /blackout-schedule
+```
 
-[Detailed API Documentation](API.md)
+Retrieve scheduling records based on filter options.
 
-### Webhook Notifications
+#### Query Parameters
 
-The API supports webhook notifications that automatically send new power outage schedules to your endpoint whenever they become available:
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `option` | Yes | `all`, `latest_n`, `by_date`, or `by_schedule_date` |
+| `date` | For `by_date`, `by_schedule_date` | `YYYY-MM-DD`, `today`, or `tomorrow` |
+| `limit` | For `latest_n` | Integer > 0 |
+| `queue` | No | Comma-separated queue identifiers (e.g., `3_2` or `4_1,3_1`) |
 
-- **Automatic delivery** - Get notified immediately when new schedules are parsed
-- **Retry logic** - Failed deliveries are retried with exponential backoff
-- **Automatic disabling** - Webhooks are disabled after 3 consecutive failures
-- **Secure headers** - Includes authentication token for verification
+#### Filter Options
 
-Register your webhook URL via `POST /webhook` and receive real-time updates without polling.
+- `all` - Retrieves all schedule records
+- `latest_n` - Gets limited number of recent records (requires `limit`)
+- `by_date` - Gets records for specific publication date (requires `date`)
+- `by_schedule_date` - Gets records for specific schedule date (requires `date`, optional `limit`)
 
-## 🚦 Running Tests
+#### Example Requests
 
-To run the tests locally:
+**Get all schedules:**
+```bash
+curl "http://localhost:8080/cherkasyoblenergo/api/blackout-schedule?option=all"
+```
+
+**Get latest 5 schedules:**
+```bash
+curl "http://localhost:8080/cherkasyoblenergo/api/blackout-schedule?option=latest_n&limit=5"
+```
+
+**Get today's schedule for queue 3_2:**
+```bash
+curl "http://localhost:8080/cherkasyoblenergo/api/blackout-schedule?option=by_schedule_date&date=today&queue=3_2"
+```
+
+**Get schedule with multiple queues:**
+```bash
+curl "http://localhost:8080/cherkasyoblenergo/api/blackout-schedule?option=latest_n&limit=1&queue=4_1,3_1,2_2"
+```
+
+#### Response Examples
+
+**Full response (without queue filter):**
+```json
+[
+  {
+    "id": 1234,
+    "news_id": 100,
+    "title": "Schedule for November 14",
+    "date": "2024-03-20T10:30:00Z",
+    "schedule_date": "2024-11-14",
+    "1_1": "08:00-10:00",
+    "1_2": "10:00-12:00",
+    "2_1": "12:00-14:00",
+    "2_2": "14:00-16:00",
+    "3_1": "09:00-11:00",
+    "3_2": "11:00-13:00",
+    "4_1": "13:00-15:00",
+    "4_2": "15:00-17:00",
+    "5_1": "07:00-09:00",
+    "5_2": "09:00-11:00",
+    "6_1": "11:00-13:00",
+    "6_2": "13:00-15:00"
+  }
+]
+```
+
+**Filtered response (with queue filter):**
+```json
+[
+  {
+    "id": 1234,
+    "news_id": 100,
+    "title": "Schedule for November 14",
+    "date": "2024-03-20T10:30:00Z",
+    "schedule_date": "2024-11-14",
+    "3_2": "00:30 - 02:30, 06:00 - 09:00"
+  }
+]
+```
+
+### Rate Limiting
+
+- Default: 60 requests per minute per IP
+- Configurable via `RATE_LIMIT_PER_MINUTE` environment variable
+- Response headers:
+  - `X-RateLimit-Limit` - Maximum requests allowed
+  - `X-RateLimit-Remaining` - Remaining requests in current window
+
+### Caching
+
+- Responses are cached for 60 seconds by default
+- Configurable via `CACHE_TTL_SECONDS` environment variable
+- Response headers:
+  - `Cache-Control` - Cache duration
+  - `X-Cache` - `HIT` or `MISS`
+
+### Authentication (Optional)
+
+By default, the API is public and requires no authentication. For private instances, you can enable API key authentication:
+
+1. Set the `API_KEY` environment variable:
+   ```properties
+   API_KEY=your-secret-key
+   ```
+
+2. Include the key in all requests:
+   ```bash
+   curl -H "X-API-Key: your-secret-key" "http://localhost:8080/cherkasyoblenergo/api/blackout-schedule?option=latest_n&limit=1"
+   ```
+
+If `API_KEY` is not set or empty, the API remains public.
+
+### Error Responses
+
+| Status Code | Description |
+|-------------|-------------|
+| 200 | Success |
+| 400 | Bad Request (invalid parameters) |
+| 401 | Unauthorized (invalid or missing API key, if authentication is enabled) |
+| 429 | Too Many Requests (rate limit exceeded) |
+| 500 | Internal Server Error |
+
+## Running Tests
 
 ```bash
 go test ./...
 ```
 
-## ⚡ Free API Access
+## License
 
-Since I host the app for my own needs, I can provide you with limited access (6 req/min) to the API and webhook notifications for free. Contact via [email](mailto:dock-brunt-rarity@duck.com) for access.
+This project is licensed under the BSD 2-Clause License. See the [LICENSE](LICENSE) file for details.
