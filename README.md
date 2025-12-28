@@ -11,7 +11,7 @@
 [![Releases](https://img.shields.io/github/release/Sigmanor/cherkasyoblenergo-api.svg)](https://github.com/Sigmanor/cherkasyoblenergo-api/releases)
 [![Changelog](https://img.shields.io/badge/changelog-md-blue)](CHANGELOG.md)
 
-**Open public API** for retrieving power outage schedules from [cherkasyoblenergo.com](https://cherkasyoblenergo.com/)
+**Unofficial API** for retrieving power outage schedules from [cherkasyoblenergo.com](https://cherkasyoblenergo.com/)
 
 </div>
 
