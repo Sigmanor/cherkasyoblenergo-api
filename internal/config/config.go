@@ -16,14 +16,13 @@ type Config struct {
 	LogLevel   string `mapstructure:"LOG_LEVEL"`
 	NewsURL    string `mapstructure:"NEWS_URL"`
 
-	// Rate limiting
 	RateLimitPerMinute int `mapstructure:"RATE_LIMIT_PER_MINUTE"`
 
-	// Cache
 	CacheTTLSeconds int `mapstructure:"CACHE_TTL_SECONDS"`
 
-	// Authentication (optional)
 	APIKey string `mapstructure:"API_KEY"`
+
+	ProxyMode string `mapstructure:"PROXY_MODE"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
@@ -36,6 +35,7 @@ func LoadConfig(path string) (config Config, err error) {
 	viper.SetDefault("LOG_LEVEL", "info")
 	viper.SetDefault("SERVER_PORT", "8080")
 	viper.SetDefault("NEWS_URL", "https://gita.cherkasyoblenergo.com/obl-main-controller/api/news2?size=18&category=1&page=0")
+	viper.SetDefault("PROXY_MODE", "none")
 
 	viper.AutomaticEnv()
 

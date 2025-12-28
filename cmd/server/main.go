@@ -49,11 +49,23 @@ func runServer() error {
 
 	rateLimiter := middleware.NewIPRateLimiter(db, cfg.RateLimitPerMinute)
 
-	app := fiber.New(fiber.Config{
-		EnableTrustedProxyCheck: true,
-		TrustedProxies:          []string{"10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "127.0.0.1"},
-		ProxyHeader:             fiber.HeaderXForwardedFor,
-	})
+	fiberConfig := fiber.Config{}
+	switch cfg.ProxyMode {
+	case "cloudflare":
+		fiberConfig.EnableTrustedProxyCheck = true
+		fiberConfig.TrustedProxies = []string{"10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "127.0.0.1"}
+		fiberConfig.ProxyHeader = "CF-Connecting-IP"
+		log.Println("Proxy mode: cloudflare (using CF-Connecting-IP header)")
+	case "standard":
+		fiberConfig.EnableTrustedProxyCheck = true
+		fiberConfig.TrustedProxies = []string{"10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "127.0.0.1"}
+		fiberConfig.ProxyHeader = fiber.HeaderXForwardedFor
+		log.Println("Proxy mode: standard (using X-Forwarded-For header)")
+	default:
+		log.Println("Proxy mode: none (using direct connection IP)")
+	}
+
+	app := fiber.New(fiberConfig)
 	app.Use(fiberrecover.New())
 	app.Use(middleware.HTTPSEnforcement())
 	app.Use(middleware.APIKeyAuth(cfg.APIKey))
