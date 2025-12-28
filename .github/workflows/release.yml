@@ -35,7 +35,9 @@ jobs:
           node-version: "lts/*"
           
       - name: Install dependencies
-        run: npm install
+        run: |
+          npm install
+          npm install -g conventional-changelog-cli
         
       - name: Release
         env:
@@ -47,6 +49,7 @@ jobs:
             
             if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
               echo "[Dry Run] Would configure git user"
+              echo "[Dry Run] Would update CHANGELOG.md"
               echo "[Dry Run] Would bump version to $VERSION"
               echo "[Dry Run] Would push changes and tag v$VERSION"
               echo "[Dry Run] Would create GitHub release v$VERSION"
@@ -55,9 +58,18 @@ jobs:
               git config user.name "github-actions[bot]"
               git config user.email "github-actions[bot]@users.noreply.github.com"
               
-              # Update version and tag (npm version creates the tag v$VERSION by default if not configured otherwise)
-              # Using --message to match standard format if desired, but default is "v%s"
-              npm version $VERSION -m "chore(release): %s [skip ci]"
+              # Update package.json version first (without git tag)
+              npm version $VERSION --no-git-tag-version
+              
+              # Generate CHANGELOG entry for this release
+              conventional-changelog -p angular -i CHANGELOG.md -s -r 0
+              
+              # Commit changes
+              git add CHANGELOG.md package.json
+              git commit -m "chore(release): $VERSION [skip ci]"
+              
+              # Create tag
+              git tag -a "v$VERSION" -m "v$VERSION"
               
               # Push commits and tags
               git push origin HEAD --tags
