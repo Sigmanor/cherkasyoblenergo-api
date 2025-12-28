@@ -49,7 +49,11 @@ func runServer() error {
 
 	rateLimiter := middleware.NewIPRateLimiter(db, cfg.RateLimitPerMinute)
 
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		EnableTrustedProxyCheck: true,
+		TrustedProxies:          []string{"10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "127.0.0.1"},
+		ProxyHeader:             fiber.HeaderXForwardedFor,
+	})
 	app.Use(fiberrecover.New())
 	app.Use(middleware.HTTPSEnforcement())
 	app.Use(middleware.APIKeyAuth(cfg.APIKey))
