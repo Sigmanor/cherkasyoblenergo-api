@@ -1,3 +1,16 @@
+# [2.1.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v2.0.0...v2.1.0) (2025-12-28)
+
+
+### Bug Fixes
+
+* **middleware:** respect CF-Visitor https ([f71eef5](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/f71eef55e61b671f712d35ce3b6a04cea39a6b92))
+* **server:** configure fiber trusted proxies ([0041696](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/0041696b32fb923412c0603aa6aebf36a695d946))
+
+
+### Features
+
+* **server:** add configurable proxy mode ([696ec01](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/696ec011cba07bee4c20fb568ec9ca1c36483ba5))
+
 # [2.0.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v1.11.1...v2.0.0) (2025-12-28)
 
 
