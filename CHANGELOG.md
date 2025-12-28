@@ -1,3 +1,10 @@
+## [2.2.2](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v2.2.1...v2.2.2) (2025-12-28)
+
+
+### Bug Fixes
+
+* **api:** rename API info name ([966736d](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/966736d027748e4666db8b69796e493f9f36e647))
+
 ## [2.2.1](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v2.2.0...v2.2.1) (2025-12-28)
 
 
