@@ -67,7 +67,7 @@ func GetAPIInfo() fiber.Handler {
 						},
 						{
 							"description": "Get schedule for specific date with queue filter",
-							"url":         "/cherkasyoblenergo/api/blackout-schedule?option=by_schedule_date&date=2024-01-15&queue=1_1,2_1",
+							"url":         "/cherkasyoblenergo/api/blackout-schedule?option=by_schedule_date&date=2025-12-25&queue=1_1,2_1",
 						},
 					},
 				},
