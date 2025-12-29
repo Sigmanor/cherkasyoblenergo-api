@@ -1,3 +1,10 @@
+# [2.3.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v2.2.2...v2.3.0) (2025-12-29)
+
+
+### Features
+
+* **db:** use sqlite instead of postgres ([e1330df](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/e1330dfd2a4e3e74c6cfcecd4f285e4c4420740c))
+
 ## [2.2.2](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v2.2.1...v2.2.2) (2025-12-28)
 
 
