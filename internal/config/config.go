@@ -30,7 +30,7 @@ func LoadConfig(path string) (config Config, err error) {
 	viper.SetDefault("CACHE_TTL_SECONDS", 60)
 	viper.SetDefault("LOG_LEVEL", "info")
 	viper.SetDefault("SERVER_PORT", "8080")
-	viper.SetDefault("NEWS_URL", "https://gita.cherkasyoblenergo.com/obl-main-controller/api/news2?size=18&category=1&page=0")
+	viper.SetDefault("NEWS_URL", "https://gita.cherkasyoblenergo.com/obl-main-controller/api/news2?size=20&category=1&page=0")
 	viper.SetDefault("PROXY_MODE", "none")
 
 	viper.AutomaticEnv()
