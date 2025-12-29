@@ -39,35 +39,26 @@ https://hue.pp.ua/cherkasyoblenergo/api/
 
 ## Встановлення
 
-### Передумови
+### Вимоги
 
 - Go 1.24 або вище
-- PostgreSQL 17
 
 ### Налаштування
 
-1. **Встановіть PostgreSQL 17**
-
-   Дотримуйтесь [офіційного посібника з встановлення PostgreSQL](https://www.postgresql.org/download/).
-
-2. **Клонуйте репозиторій**
+1. **Клонуйте репозиторій**
 
    ```bash
    git clone https://github.com/Sigmanor/cherkasyoblenergo-api.git
    cd cherkasyoblenergo-api
    ```
 
-3. **Налаштуйте змінні середовища**
+2. **Налаштуйте змінні середовища**
 
    Створіть файл `.env` у кореневій директорії. Дивіться таблицю нижче для всіх доступних опцій:
 
    | Змінна | Обов'язкова | За замовчуванням | Опис |
    |--------|-------------|------------------|------|
-   | `DB_HOST` | Так | - | Хост PostgreSQL |
-   | `DB_PORT` | Так | - | Порт PostgreSQL |
-   | `DB_USER` | Так | - | Ім'я користувача PostgreSQL |
-   | `DB_PASSWORD` | Так | - | Пароль PostgreSQL |
-   | `DB_NAME` | Так | - | Назва бази даних PostgreSQL |
+   | `DB_NAME` | Ні | `cherkasyoblenergo.db` | Шлях до файлу бази даних SQLite |
    | `SERVER_PORT` | Ні | `8080` | Порт для API сервера |
    | `NEWS_URL` | Ні | `https://gita.cherkasyoblenergo.com/obl-main-controller/api/news2?size=18&category=1&page=0` | URL для парсингу графіків |
    | `PARSING_INTERVAL_MINUTES` | Ні | `5` | Як часто перевіряти нові графіки (хвилини) |
@@ -78,7 +69,7 @@ https://hue.pp.ua/cherkasyoblenergo/api/
    | `API_KEY` | Ні | - | Якщо встановлено, вмикає автентифікацію за API ключем |
    | `PROXY_MODE` | Ні | `none` | Режим проксі для визначення реального IP клієнта: `cloudflare`, `standard` або `none` |
 
-4. **Запустіть додаток**
+3. **Запуск**
 
    ```bash
    go run ./cmd/server/main.go

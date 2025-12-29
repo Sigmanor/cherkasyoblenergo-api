@@ -42,32 +42,23 @@ Feel free to use it for your projects. However, please note that this instance i
 ### Prerequisites
 
 - Go 1.24 or higher
-- PostgreSQL 17
 
 ### Setup
 
-1. **Install PostgreSQL 17**
-
-   Follow the [official PostgreSQL installation guide](https://www.postgresql.org/download/).
-
-2. **Clone the repository**
+1. **Clone the repository**
 
    ```bash
    git clone https://github.com/sigmanor/cherkasyoblenergo-api.git
    cd cherkasyoblenergo-api
    ```
 
-3. **Configure environment variables**
+2. **Configure environment variables**
 
    Create a `.env` file in the root directory. See the table below for all available options:
 
    | Variable | Required | Default | Description |
    |----------|----------|---------|-------------|
-   | `DB_HOST` | Yes | - | PostgreSQL host |
-   | `DB_PORT` | Yes | - | PostgreSQL port |
-   | `DB_USER` | Yes | - | PostgreSQL username |
-   | `DB_PASSWORD` | Yes | - | PostgreSQL password |
-   | `DB_NAME` | Yes | - | PostgreSQL database name |
+   | `DB_NAME` | No | `cherkasyoblenergo.db` | SQLite database file path |
    | `SERVER_PORT` | No | `8080` | Port for the API server |
    | `NEWS_URL` | No | `https://gita.cherkasyoblenergo.com/obl-main-controller/api/news2?size=18&category=1&page=0` | URL to parse schedules from |
    | `PARSING_INTERVAL_MINUTES` | No | `5` | How often to check for new schedules (minutes) |
@@ -78,7 +69,7 @@ Feel free to use it for your projects. However, please note that this instance i
    | `API_KEY` | No | - | If set, enables API key authentication |
    | `PROXY_MODE` | No | `none` | Proxy mode for real client IP detection: `cloudflare`, `standard`, or `none` |
 
-4. **Run the application**
+3. **Run the application**
 
    ```bash
    go run ./cmd/server/main.go
