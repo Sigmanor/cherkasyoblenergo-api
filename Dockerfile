@@ -15,5 +15,6 @@ ENV TZ=Europe/Kyiv
 WORKDIR /app
 COPY --from=builder /app/cherkasyoblenergo_api .
 COPY .env /app/.env
-EXPOSE 9011
+RUN mkdir -p /app/db
+EXPOSE 8080
 CMD ["./cherkasyoblenergo_api"]
