@@ -1,21 +1,38 @@
 package database
 
 import (
+	"os"
 	"testing"
 
 	"cherkasyoblenergo-api/internal/config"
 )
 
-func TestConnectDB_InvalidConfig(t *testing.T) {
+func TestConnectDB_SQLite(t *testing.T) {
+	tempFile, err := os.CreateTemp("", "test_*.db")
+	if err != nil {
+		t.Fatalf("failed to create temp file: %v", err)
+	}
+	tempFile.Close()
+	defer os.Remove(tempFile.Name())
+
 	cfg := config.Config{
-		DBHost:     "invalid_host",
-		DBUser:     "user",
-		DBPassword: "pass",
-		DBName:     "dbname",
-		DBPort:     "5432",
+		DBName:   tempFile.Name(),
+		LogLevel: "silent",
 	}
-	_, err := ConnectDB(cfg)
-	if err == nil {
-		t.Error("Expected error with invalid config, got nil")
+
+	db, err := ConnectDB(cfg)
+	if err != nil {
+		t.Fatalf("ConnectDB failed: %v", err)
 	}
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		t.Fatalf("failed to get underlying sql.DB: %v", err)
+	}
+
+	if err := sqlDB.Ping(); err != nil {
+		t.Errorf("failed to ping database: %v", err)
+	}
+
+	sqlDB.Close()
 }
