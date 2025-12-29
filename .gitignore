@@ -5,3 +5,6 @@ tmp
 .env.prod
 .cache
 security.log
+*.db
+*.db-shm
+*.db-wal
