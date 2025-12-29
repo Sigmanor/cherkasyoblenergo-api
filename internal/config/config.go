@@ -7,10 +7,6 @@ import (
 var AppVersion = "dev"
 
 type Config struct {
-	DBHost     string `mapstructure:"DB_HOST"`
-	DBPort     string `mapstructure:"DB_PORT"`
-	DBUser     string `mapstructure:"DB_USER"`
-	DBPassword string `mapstructure:"DB_PASSWORD"`
 	DBName     string `mapstructure:"DB_NAME"`
 	ServerPort string `mapstructure:"SERVER_PORT"`
 	LogLevel   string `mapstructure:"LOG_LEVEL"`
