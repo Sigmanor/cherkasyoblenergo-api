@@ -1,6 +1,7 @@
 services:
   cherkasyoblenergo-api:
     container_name: cherkasyoblenergo-api
+    user: "1000:1000"
     build:
       context: .
       args:
