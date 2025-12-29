@@ -11,7 +11,7 @@ import (
 func TestLoadConfig_Success(t *testing.T) {
 	viper.Reset()
 
-	envVars := []string{"DB_HOST", "DB_PORT", "DB_USER", "DB_PASSWORD", "DB_NAME", "SERVER_PORT"}
+	envVars := []string{"DB_NAME", "SERVER_PORT"}
 	oldEnv := make(map[string]string)
 	for _, key := range envVars {
 		oldEnv[key] = os.Getenv(key)
@@ -32,11 +32,7 @@ func TestLoadConfig_Success(t *testing.T) {
 	}
 	defer os.RemoveAll(tempDir)
 
-	envContent := []byte(`DB_HOST=localhost
-DB_PORT=5432
-DB_USER=testuser
-DB_PASSWORD=testpass
-DB_NAME=testdb
+	envContent := []byte(`DB_NAME=test.db
 SERVER_PORT=8080
 RATE_LIMIT_PER_MINUTE=30
 CACHE_TTL_SECONDS=120
@@ -51,20 +47,8 @@ CACHE_TTL_SECONDS=120
 		t.Fatalf("LoadConfig failed: %v", err)
 	}
 
-	if cfg.DBHost != "localhost" {
-		t.Errorf("expected DBHost 'localhost', got '%s'", cfg.DBHost)
-	}
-	if cfg.DBPort != "5432" {
-		t.Errorf("expected DBPort '5432', got '%s'", cfg.DBPort)
-	}
-	if cfg.DBUser != "testuser" {
-		t.Errorf("expected DBUser 'testuser', got '%s'", cfg.DBUser)
-	}
-	if cfg.DBPassword != "testpass" {
-		t.Errorf("expected DBPassword 'testpass', got '%s'", cfg.DBPassword)
-	}
-	if cfg.DBName != "testdb" {
-		t.Errorf("expected DBName 'testdb', got '%s'", cfg.DBName)
+	if cfg.DBName != "test.db" {
+		t.Errorf("expected DBName 'test.db', got '%s'", cfg.DBName)
 	}
 	if cfg.ServerPort != "8080" {
 		t.Errorf("expected SERVER_PORT '8080', got '%s'", cfg.ServerPort)
@@ -80,7 +64,7 @@ CACHE_TTL_SECONDS=120
 func TestLoadConfig_Defaults(t *testing.T) {
 	viper.Reset()
 
-	envVars := []string{"DB_HOST", "DB_PORT", "DB_USER", "DB_PASSWORD", "DB_NAME", "SERVER_PORT", "RATE_LIMIT_PER_MINUTE", "CACHE_TTL_SECONDS"}
+	envVars := []string{"DB_NAME", "SERVER_PORT", "RATE_LIMIT_PER_MINUTE", "CACHE_TTL_SECONDS"}
 	oldEnv := make(map[string]string)
 	for _, key := range envVars {
 		oldEnv[key] = os.Getenv(key)
@@ -101,11 +85,7 @@ func TestLoadConfig_Defaults(t *testing.T) {
 	}
 	defer os.RemoveAll(tempDir)
 
-	envContent := []byte(`DB_HOST=localhost
-DB_PORT=5432
-DB_USER=testuser
-DB_PASSWORD=testpass
-DB_NAME=testdb
+	envContent := []byte(`DB_NAME=test.db
 SERVER_PORT=8080
 `)
 	envFile := filepath.Join(tempDir, ".env")
