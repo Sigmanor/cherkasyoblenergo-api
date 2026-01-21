@@ -1,7 +1,6 @@
 package main
 
 import (
-	"cherkasyoblenergo-api/internal/cache"
 	"cherkasyoblenergo-api/internal/config"
 	"cherkasyoblenergo-api/internal/database"
 	"cherkasyoblenergo-api/internal/handlers"
@@ -45,8 +44,6 @@ func runServer() error {
 
 	cronScheduler := parser.StartCron(db, cfg.NewsURL)
 
-	scheduleCache := cache.NewScheduleCache(cfg.CacheTTLSeconds)
-
 	rateLimiter := middleware.NewIPRateLimiter(db, cfg.RateLimitPerMinute)
 
 	fiberConfig := fiber.Config{}
@@ -74,7 +71,7 @@ func runServer() error {
 
 	api := app.Group("/cherkasyoblenergo/api")
 	api.Get("/", handlers.GetAPIInfo())
-	api.Get("/blackout-schedule", handlers.GetSchedule(db, scheduleCache))
+	api.Get("/blackout-schedule", handlers.GetSchedule(db))
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"cherkasyoblenergo-api/internal/models"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -10,16 +11,13 @@ import (
 	"testing"
 	"time"
 
-	"cherkasyoblenergo-api/internal/cache"
-	"cherkasyoblenergo-api/internal/models"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
-func setupTestDB() (*gorm.DB, *cache.ScheduleCache) {
+func setupTestDB() *gorm.DB {
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect to test database")
@@ -91,9 +89,7 @@ func setupTestDB() (*gorm.DB, *cache.ScheduleCache) {
 		db.Create(&schedule)
 	}
 
-	scheduleCache := cache.NewScheduleCache(60)
-
-	return db, scheduleCache
+	return db
 }
 
 func newGetScheduleRequest(params map[string]string) *http.Request {
@@ -114,9 +110,9 @@ func newGetScheduleRequest(params map[string]string) *http.Request {
 }
 
 func TestGetSchedule_AllOption(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	req := newGetScheduleRequest(map[string]string{
 		"option": "all",
@@ -128,9 +124,9 @@ func TestGetSchedule_AllOption(t *testing.T) {
 }
 
 func TestGetSchedule_QueueFilter(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	req := newGetScheduleRequest(map[string]string{
 		"option": "all",
@@ -172,9 +168,9 @@ func TestGetSchedule_QueueFilter(t *testing.T) {
 }
 
 func TestGetSchedule_QueueFilter_InvalidFormat(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	invalidQueues := []string{"3-2", "7_1", "1_3", "abc"}
 
@@ -199,9 +195,9 @@ func TestGetSchedule_QueueFilter_InvalidFormat(t *testing.T) {
 }
 
 func TestGetSchedule_QueueFilter_WithLatestN(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	req := newGetScheduleRequest(map[string]string{
 		"option": "latest_n",
@@ -228,9 +224,9 @@ func TestGetSchedule_QueueFilter_WithLatestN(t *testing.T) {
 }
 
 func TestGetSchedule_QueueFilter_WithByDate(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	req := newGetScheduleRequest(map[string]string{
 		"option": "by_date",
@@ -256,9 +252,9 @@ func TestGetSchedule_QueueFilter_WithByDate(t *testing.T) {
 }
 
 func TestGetSchedule_ScheduleDateField(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	req := newGetScheduleRequest(map[string]string{
 		"option": "all",
@@ -300,9 +296,9 @@ func TestGetSchedule_ScheduleDateField(t *testing.T) {
 }
 
 func TestGetSchedule_ScheduleDateField_AllOptions(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	testCases := []struct {
 		name   string
@@ -377,9 +373,9 @@ func TestGetSchedule_ScheduleDateField_AllOptions(t *testing.T) {
 }
 
 func TestGetSchedule_MultipleQueues_Success(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	req := newGetScheduleRequest(map[string]string{
 		"option": "all",
@@ -427,9 +423,9 @@ func TestGetSchedule_MultipleQueues_Success(t *testing.T) {
 }
 
 func TestGetSchedule_MultipleQueues_NoSpaces(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	req := newGetScheduleRequest(map[string]string{
 		"option": "all",
@@ -466,9 +462,9 @@ func TestGetSchedule_MultipleQueues_NoSpaces(t *testing.T) {
 }
 
 func TestGetSchedule_MultipleQueues_WithDuplicates(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	req := newGetScheduleRequest(map[string]string{
 		"option": "all",
@@ -507,9 +503,9 @@ func TestGetSchedule_MultipleQueues_WithDuplicates(t *testing.T) {
 }
 
 func TestGetSchedule_MultipleQueues_InvalidQueue(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	testCases := []struct {
 		name  string
@@ -558,9 +554,9 @@ func TestGetSchedule_MultipleQueues_InvalidQueue(t *testing.T) {
 }
 
 func TestGetSchedule_MultipleQueues_WithLatestN(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	req := newGetScheduleRequest(map[string]string{
 		"option": "latest_n",
@@ -593,9 +589,9 @@ func TestGetSchedule_MultipleQueues_WithLatestN(t *testing.T) {
 }
 
 func TestGetSchedule_MultipleQueues_WithByDate(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	req := newGetScheduleRequest(map[string]string{
 		"option": "by_date",
@@ -627,9 +623,9 @@ func TestGetSchedule_MultipleQueues_WithByDate(t *testing.T) {
 }
 
 func TestGetSchedule_SingleQueue_BackwardCompatibility(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	req := newGetScheduleRequest(map[string]string{
 		"option": "all",
@@ -671,9 +667,9 @@ func TestGetSchedule_SingleQueue_BackwardCompatibility(t *testing.T) {
 }
 
 func TestGetSchedule_EmptyQueue_ReturnsAllQueues(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	testCases := []struct {
 		name  string
@@ -738,9 +734,9 @@ func TestGetSchedule_EmptyQueue_ReturnsAllQueues(t *testing.T) {
 }
 
 func TestGetSchedule_LatestNWithQueues(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	req := httptest.NewRequest("GET", "/schedule?option=latest_n&limit=2&queue=3_2,4_1", nil)
 
@@ -781,9 +777,9 @@ func TestGetSchedule_LatestNWithQueues(t *testing.T) {
 }
 
 func TestGetSchedule_InvalidLimit(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	req := httptest.NewRequest("GET", "/schedule?option=latest_n&limit=abc", nil)
 
@@ -799,9 +795,9 @@ func TestGetSchedule_InvalidLimit(t *testing.T) {
 }
 
 func TestGetSchedule_ByScheduleDate_Success(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	now := time.Now()
 	year := now.Year()
@@ -832,9 +828,9 @@ func TestGetSchedule_ByScheduleDate_Success(t *testing.T) {
 }
 
 func TestGetSchedule_ByScheduleDate_WithLimit(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	now := time.Now()
 	year := now.Year()
@@ -861,9 +857,9 @@ func TestGetSchedule_ByScheduleDate_WithLimit(t *testing.T) {
 }
 
 func TestGetSchedule_ByScheduleDate_WithQueue(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	now := time.Now()
 	year := now.Year()
@@ -895,9 +891,9 @@ func TestGetSchedule_ByScheduleDate_WithQueue(t *testing.T) {
 }
 
 func TestGetSchedule_ByScheduleDate_NoDate(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	req := newGetScheduleRequest(map[string]string{
 		"option": "by_schedule_date",
@@ -915,9 +911,9 @@ func TestGetSchedule_ByScheduleDate_NoDate(t *testing.T) {
 }
 
 func TestGetSchedule_ByScheduleDate_InvalidDateFormat(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	invalidDates := []string{"14.11", "2024/11/14", "14-11-2024", "abc"}
 
@@ -942,9 +938,9 @@ func TestGetSchedule_ByScheduleDate_InvalidDateFormat(t *testing.T) {
 }
 
 func TestGetSchedule_ByScheduleDate_Today(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	req := newGetScheduleRequest(map[string]string{
 		"option": "by_schedule_date",
@@ -962,9 +958,9 @@ func TestGetSchedule_ByScheduleDate_Today(t *testing.T) {
 }
 
 func TestGetSchedule_ByScheduleDate_Tomorrow(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	req := newGetScheduleRequest(map[string]string{
 		"option": "by_schedule_date",
@@ -982,9 +978,9 @@ func TestGetSchedule_ByScheduleDate_Tomorrow(t *testing.T) {
 }
 
 func TestGetSchedule_ByDate_Today(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	req := newGetScheduleRequest(map[string]string{
 		"option": "by_date",
@@ -1002,9 +998,9 @@ func TestGetSchedule_ByDate_Today(t *testing.T) {
 }
 
 func TestGetSchedule_ByDate_Tomorrow(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	req := newGetScheduleRequest(map[string]string{
 		"option": "by_date",
@@ -1022,9 +1018,9 @@ func TestGetSchedule_ByDate_Tomorrow(t *testing.T) {
 }
 
 func TestGetSchedule_DateValues_CaseInsensitive(t *testing.T) {
-	db, scheduleCache := setupTestDB()
+	db := setupTestDB()
 	app := fiber.New()
-	app.Get("/schedule", GetSchedule(db, scheduleCache))
+	app.Get("/schedule", GetSchedule(db))
 
 	testCases := []string{"TODAY", "Today", "TodAY", "TOMORROW", "Tomorrow", "toMORROW"}
 

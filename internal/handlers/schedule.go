@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"cherkasyoblenergo-api/internal/cache"
 	"cherkasyoblenergo-api/internal/config"
 	"cherkasyoblenergo-api/internal/models"
 	"cherkasyoblenergo-api/internal/utils"
@@ -175,17 +174,8 @@ func resolveDateValue(dateStr string) string {
 	}
 }
 
-func handleScheduleRequest(c *fiber.Ctx, db *gorm.DB, filter ScheduleFilter, scheduleCache *cache.ScheduleCache) error {
+func handleScheduleRequest(c *fiber.Ctx, db *gorm.DB, filter ScheduleFilter) error {
 	filter.Date = resolveDateValue(filter.Date)
-
-	cacheKey := fmt.Sprintf("%s:%s:%d:%s", filter.Option, filter.Date, filter.Limit, filter.Queue)
-
-	if cached, found := scheduleCache.Get(cacheKey); found {
-		cacheTTL := int(scheduleCache.TTL().Seconds())
-		c.Set("Cache-Control", fmt.Sprintf("public, max-age=%d", cacheTTL))
-		c.Set("X-Cache", "HIT")
-		return c.JSON(cached)
-	}
 
 	var schedules []models.Schedule
 	query := db.Table("schedules")
@@ -269,16 +259,10 @@ func handleScheduleRequest(c *fiber.Ctx, db *gorm.DB, filter ScheduleFilter, sch
 		response = buildFilteredResponse(schedules, validatedQueues)
 	}
 
-	scheduleCache.Set(cacheKey, response)
-
-	cacheTTL := int(scheduleCache.TTL().Seconds())
-	c.Set("Cache-Control", fmt.Sprintf("public, max-age=%d", cacheTTL))
-	c.Set("X-Cache", "MISS")
-
 	return c.JSON(response)
 }
 
-func GetSchedule(db *gorm.DB, scheduleCache *cache.ScheduleCache) fiber.Handler {
+func GetSchedule(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		filter := ScheduleFilter{
 			Option: c.Query("option"),
@@ -294,6 +278,6 @@ func GetSchedule(db *gorm.DB, scheduleCache *cache.ScheduleCache) fiber.Handler 
 			filter.Limit = limit
 		}
 
-		return handleScheduleRequest(c, db, filter, scheduleCache)
+		return handleScheduleRequest(c, db, filter)
 	}
 }
