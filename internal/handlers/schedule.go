@@ -223,7 +223,7 @@ func handleScheduleRequest(c *fiber.Ctx, db *gorm.DB, filter ScheduleFilter, sch
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid limit value, it must be greater than or equal to zero"})
 		}
 
-		scheduleQuery := db.Table("schedules").Where("schedule_date = ?", filter.Date).Order("date desc")
+		scheduleQuery := db.Table("schedules").Where("schedule_date = ?", filter.Date).Order("news_id desc")
 		if filter.Limit > 0 {
 			scheduleQuery = scheduleQuery.Limit(filter.Limit)
 		}
@@ -234,7 +234,7 @@ func handleScheduleRequest(c *fiber.Ctx, db *gorm.DB, filter ScheduleFilter, sch
 		neededMore := filter.Limit == 0 || len(schedules) < filter.Limit
 		if neededMore {
 			var legacySchedules []models.Schedule
-			legacyQuery := db.Table("schedules").Where("schedule_date = '' OR schedule_date IS NULL").Order("date desc")
+			legacyQuery := db.Table("schedules").Where("schedule_date = '' OR schedule_date IS NULL").Order("news_id desc")
 			if err := legacyQuery.Find(&legacySchedules).Error; err == nil {
 				for i := range legacySchedules {
 					legacySchedules[i].ScheduleDate = utils.ExtractScheduleDateFromTitle(legacySchedules[i].Title)
