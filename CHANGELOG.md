@@ -1,3 +1,15 @@
+# [2.4.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v2.3.0...v2.4.0) (2026-01-21)
+
+
+### Bug Fixes
+
+* **schedule:** correct ordering field in query ([499a158](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/499a1583aae0786d3e5a4e4f8b31b767611a8104))
+
+
+### Features
+
+* **schedule:** sort schedules by news id in descending order ([4a49779](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/4a49779b813ef9028d268e964c090866b9ea49cd))
+
 # [2.3.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v2.2.2...v2.3.0) (2025-12-29)
 
 
