@@ -198,7 +198,7 @@ func handleScheduleRequest(c *fiber.Ctx, db *gorm.DB, filter ScheduleFilter, sch
 		if filter.Limit <= 0 {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid limit value, it must be greater than zero"})
 		}
-		if err := query.Order("id desc").Limit(filter.Limit).Find(&schedules).Error; err != nil {
+		if err := query.Order("news_id desc").Limit(filter.Limit).Find(&schedules).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve latest records"})
 		}
 	case "by_date":
