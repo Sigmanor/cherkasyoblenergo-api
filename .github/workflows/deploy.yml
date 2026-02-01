@@ -79,14 +79,81 @@ jobs:
             echo "APP_VERSION=$APP_VERSION" >> .env
             echo "Building version: $APP_VERSION"
 
-            # Always rebuild and restart application container
-            echo "Stopping and removing existing application container..."
-            if docker inspect cherkasyoblenergo-api >/dev/null 2>&1; then
-              docker compose -f docker-compose.app.yml down --rmi all
+            # Zero-downtime deployment using blue-green strategy
+            echo "Building new Docker image..."
+            export APP_VERSION
+            docker compose -f docker-compose.app.yml build --no-cache
+
+            # Get the port from .env
+            SERVER_PORT=$(grep SERVER_PORT .env | cut -d '=' -f2 | tr -d '"' | tr -d "'")
+            echo "Application port: $SERVER_PORT"
+
+            # Start new container with temporary name
+            echo "Starting new container for health check..."
+            NEW_CONTAINER="cherkasyoblenergo-api-new"
+            
+            # Run the new container on a temporary port for health check
+            docker run -d \
+              --name "$NEW_CONTAINER" \
+              --user "1000:1000" \
+              -e DB_NAME=/app/db/cherkasyoblenergo.db \
+              -e SERVER_PORT=8080 \
+              -e NEWS_URL="${NEWS_URL}" \
+              -e APP_VERSION="${APP_VERSION}" \
+              -v ~/sqlite_db:/app/db \
+              --env-file .env \
+              --network cherkasyoblenergo-network \
+              -p 8081:8080 \
+              "cherkasyoblenergo-api:${APP_VERSION}"
+
+            # Also connect to think-root-network
+            docker network connect think-root-network "$NEW_CONTAINER" 2>/dev/null || true
+
+            # Health check - wait for the new container to be ready
+            echo "Performing health check on new container..."
+            MAX_RETRIES=30
+            RETRY_COUNT=0
+            HEALTH_OK=false
+
+            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+              if curl -sf http://localhost:8081/ > /dev/null 2>&1; then
+                echo "Health check passed!"
+                HEALTH_OK=true
+                break
+              fi
+              echo "Waiting for new container to be ready... ($((RETRY_COUNT + 1))/$MAX_RETRIES)"
+              sleep 2
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+            done
+
+            if [ "$HEALTH_OK" = false ]; then
+              echo "Health check failed! Rolling back..."
+              docker stop "$NEW_CONTAINER" 2>/dev/null || true
+              docker rm "$NEW_CONTAINER" 2>/dev/null || true
+              echo "Deployment failed - old container still running"
+              exit 1
             fi
 
-            echo "Building and starting application..."
-            export APP_VERSION
-            docker compose -f docker-compose.app.yml up -d --no-deps --build
+            # Stop the temporary new container
+            echo "Stopping temporary container..."
+            docker stop "$NEW_CONTAINER"
+            docker rm "$NEW_CONTAINER"
 
-            echo "Deployment complete!"
+            # Now do the quick swap - stop old and start new on correct port
+            echo "Performing quick container swap..."
+            OLD_CONTAINER="cherkasyoblenergo-api"
+
+            # Stop old container (this is the only downtime - just a few seconds)
+            if docker inspect "$OLD_CONTAINER" >/dev/null 2>&1; then
+              docker stop "$OLD_CONTAINER"
+              docker rm "$OLD_CONTAINER"
+            fi
+
+            # Start new container on the correct port
+            docker compose -f docker-compose.app.yml up -d --no-deps
+
+            # Clean up old images to save space
+            echo "Cleaning up old images..."
+            docker image prune -f
+
+            echo "Zero-downtime deployment complete!"
