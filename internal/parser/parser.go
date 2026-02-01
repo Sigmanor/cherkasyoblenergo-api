@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"cherkasyoblenergo-api/internal/models"
+	"cherkasyoblenergo-api/internal/utils"
 	"context"
 	"encoding/json"
 	"errors"
@@ -14,9 +16,6 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
-
-	"cherkasyoblenergo-api/internal/models"
-	"cherkasyoblenergo-api/internal/utils"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/robfig/cron/v3"
@@ -173,7 +172,7 @@ func containsScheduleKeywords(title string) bool {
 }
 
 func containsSchedulePatterns(htmlBody string) bool {
-	re := regexp.MustCompile(`\b[1-6]\.[1-2]\s+\d{1,2}:\d{2}`)
+	re := regexp.MustCompile(`\b[1-6]\.[1-2]:?\s+\d{1,2}:\d{2}`)
 	return re.MatchString(htmlBody)
 }
 
@@ -197,7 +196,7 @@ func parseScheduleFromParagraphs(htmlBody string) (models.Schedule, bool) {
 	var data models.Schedule
 	found := false
 
-	re := regexp.MustCompile(`^(\d)\.(\d)\.?\s*(.+)`)
+	re := regexp.MustCompile(`^(\d)\.(\d)\.?:?\s*(.+)`)
 
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(htmlBody))
 	if err != nil {
