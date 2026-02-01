@@ -1,3 +1,10 @@
+# [2.5.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v2.4.1...v2.5.0) (2026-02-01)
+
+
+### Features
+
+* Enhance schedule parsing to support an optional colon after the group number in patterns. ([7e050c4](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/7e050c4e57ee842f11a51c204c670703e723e86c))
+
 ## [2.4.1](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v2.4.0...v2.4.1) (2026-01-21)
 
 
