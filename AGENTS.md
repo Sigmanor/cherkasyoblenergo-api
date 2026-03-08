@@ -68,7 +68,6 @@ go test -race ./...
 cherkasyoblenergo-api/
 ├── cmd/server/main.go          # Application entrypoint
 ├── internal/
-│   ├── cache/                  # In-memory cache implementation
 │   ├── config/                 # Configuration loading (Viper)
 │   ├── database/               # Database connection setup
 │   ├── handlers/               # HTTP request handlers
@@ -107,9 +106,9 @@ import (
 ### Naming Conventions
 
 - **Packages:** lowercase, single word (e.g., `handlers`, `middleware`, `utils`)
-- **Files:** snake_case (e.g., `schedule_cache.go`, `date_extractor.go`)
+- **Files:** snake_case (e.g., `date_extractor.go`)
 - **Test files:** `*_test.go` in same package
-- **Structs:** PascalCase (e.g., `ScheduleCache`, `IPRateLimiter`)
+- **Structs:** PascalCase (e.g., `IPRateLimiter`)
 - **Interfaces:** PascalCase, typically ending with `-er` suffix
 - **Functions/Methods:** PascalCase for exported, camelCase for unexported
 - **Variables:** camelCase (e.g., `scheduleCache`, `newsURL`)
@@ -146,7 +145,7 @@ type Schedule struct {
 Return `fiber.Handler` functions using closures for dependency injection:
 
 ```go
-func GetSchedule(db *gorm.DB, cache *cache.ScheduleCache) fiber.Handler {
+func GetSchedule(db *gorm.DB) fiber.Handler {
     return func(c *fiber.Ctx) error {
         // handler logic
         return c.JSON(response)
@@ -165,7 +164,7 @@ func GetSchedule(db *gorm.DB, cache *cache.ScheduleCache) fiber.Handler {
 ```go
 func TestFunction_ScenarioName(t *testing.T) {
     // Arrange
-    db, cache := setupTestDB()
+    db := setupTestDB()
     
     // Act
     result, err := SomeFunction(input)
@@ -198,7 +197,6 @@ Environment variables (see `.env.example`):
 - `SERVER_PORT` - HTTP server port (default: 8080)
 - `NEWS_URL` - Source URL for schedule data
 - `RATE_LIMIT_PER_MINUTE` - Rate limit (default: 60)
-- `CACHE_TTL_SECONDS` - Cache TTL (default: 60)
 - `LOG_LEVEL` - Logging level: debug, info, warn, error
 - `API_KEY` - Optional API key for authentication
 - `PROXY_MODE` - none, standard, or cloudflare
@@ -215,5 +213,4 @@ docker-compose -f docker-compose.app.yml up --build
 1. **Ukrainian text handling:** The codebase processes Ukrainian month names with fuzzy matching (Levenshtein distance) to handle typos
 2. **Schedule queues:** Queues are numbered 1-6 with subqueues 1-2 (format: `X_Y`)
 3. **Date formats:** API accepts `YYYY-MM-DD`, `today`, or `tomorrow`
-4. **Caching:** Response caching is implemented at the handler level
-5. **Rate limiting:** IP-based rate limiting stored in SQLite
+4. **Rate limiting:** IP-based rate limiting stored in SQLite

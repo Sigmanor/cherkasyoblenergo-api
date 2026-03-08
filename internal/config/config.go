@@ -14,8 +14,6 @@ type Config struct {
 
 	RateLimitPerMinute int `mapstructure:"RATE_LIMIT_PER_MINUTE"`
 
-	CacheTTLSeconds int `mapstructure:"CACHE_TTL_SECONDS"`
-
 	APIKey string `mapstructure:"API_KEY"`
 
 	ProxyMode string `mapstructure:"PROXY_MODE"`
@@ -27,7 +25,6 @@ func LoadConfig(path string) (config Config, err error) {
 	viper.SetConfigType("env")
 
 	viper.SetDefault("RATE_LIMIT_PER_MINUTE", 60)
-	viper.SetDefault("CACHE_TTL_SECONDS", 60)
 	viper.SetDefault("LOG_LEVEL", "info")
 	viper.SetDefault("SERVER_PORT", "8080")
 	viper.SetDefault("NEWS_URL", "https://gita.cherkasyoblenergo.com/obl-main-controller/api/news2?size=20&category=1&page=0")

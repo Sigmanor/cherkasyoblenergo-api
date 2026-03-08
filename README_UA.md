@@ -34,7 +34,6 @@ https://hue.pp.ua/cherkasyoblenergo/api/
 - Доступ до історичних даних
 - RESTful API інтерфейс
 - Rate limiting по IP адресі
-- Кешування відповідей
 - Опціональна автентифікація за API ключем
 
 ## Встановлення
@@ -63,7 +62,6 @@ https://hue.pp.ua/cherkasyoblenergo/api/
    | `NEWS_URL` | Ні | `https://gita.cherkasyoblenergo.com/obl-main-controller/api/news2?size=18&category=1&page=0` | URL для парсингу графіків |
    | `PARSING_INTERVAL_MINUTES` | Ні | `5` | Як часто перевіряти нові графіки (хвилини) |
    | `RATE_LIMIT_PER_MINUTE` | Ні | `60` | Макс. запитів на хвилину на IP |
-   | `CACHE_TTL_SECONDS` | Ні | `60` | Тривалість кешу відповідей в секундах |
    | `LOG_LEVEL` | Ні | `info` | Рівень логування (`debug`, `info`, `warn`, `error`) |
    | `FORCE_HTTPS` | Ні | `false` | Перенаправляти HTTP на HTTPS |
    | `API_KEY` | Ні | - | Якщо встановлено, вмикає автентифікацію за API ключем |
@@ -183,14 +181,6 @@ curl "http://localhost:8080/cherkasyoblenergo/api/blackout-schedule?option=lates
 - Заголовки відповіді:
   - `X-RateLimit-Limit` - Максимальна кількість запитів
   - `X-RateLimit-Remaining` - Залишок запитів у поточному вікні
-
-### Кешування
-
-- Відповіді кешуються на 60 секунд за замовчуванням
-- Налаштовується через змінну середовища `CACHE_TTL_SECONDS`
-- Заголовки відповіді:
-  - `Cache-Control` - Тривалість кешу
-  - `X-Cache` - `HIT` або `MISS`
 
 ### Автентифікація (опціонально)
 

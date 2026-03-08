@@ -35,7 +35,6 @@ func TestLoadConfig_Success(t *testing.T) {
 	envContent := []byte(`DB_NAME=test.db
 SERVER_PORT=8080
 RATE_LIMIT_PER_MINUTE=30
-CACHE_TTL_SECONDS=120
 `)
 	envFile := filepath.Join(tempDir, ".env")
 	if err := os.WriteFile(envFile, envContent, 0o644); err != nil {
@@ -56,15 +55,12 @@ CACHE_TTL_SECONDS=120
 	if cfg.RateLimitPerMinute != 30 {
 		t.Errorf("expected RateLimitPerMinute 30, got %d", cfg.RateLimitPerMinute)
 	}
-	if cfg.CacheTTLSeconds != 120 {
-		t.Errorf("expected CacheTTLSeconds 120, got %d", cfg.CacheTTLSeconds)
-	}
 }
 
 func TestLoadConfig_Defaults(t *testing.T) {
 	viper.Reset()
 
-	envVars := []string{"DB_NAME", "SERVER_PORT", "RATE_LIMIT_PER_MINUTE", "CACHE_TTL_SECONDS"}
+	envVars := []string{"DB_NAME", "SERVER_PORT", "RATE_LIMIT_PER_MINUTE"}
 	oldEnv := make(map[string]string)
 	for _, key := range envVars {
 		oldEnv[key] = os.Getenv(key)
@@ -100,9 +96,6 @@ SERVER_PORT=8080
 
 	if cfg.RateLimitPerMinute != 60 {
 		t.Errorf("expected default RateLimitPerMinute 60, got %d", cfg.RateLimitPerMinute)
-	}
-	if cfg.CacheTTLSeconds != 60 {
-		t.Errorf("expected default CacheTTLSeconds 60, got %d", cfg.CacheTTLSeconds)
 	}
 }
 

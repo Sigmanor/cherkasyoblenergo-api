@@ -34,7 +34,6 @@ Feel free to use it for your projects. However, please note that this instance i
 - Historical data access
 - RESTful API interface
 - IP-based rate limiting
-- Response caching
 - Optional API key authentication
 
 ## Installation
@@ -63,7 +62,6 @@ Feel free to use it for your projects. However, please note that this instance i
    | `NEWS_URL` | No | `https://gita.cherkasyoblenergo.com/obl-main-controller/api/news2?size=18&category=1&page=0` | URL to parse schedules from |
    | `PARSING_INTERVAL_MINUTES` | No | `5` | How often to check for new schedules (minutes) |
    | `RATE_LIMIT_PER_MINUTE` | No | `60` | Max requests per minute per IP |
-   | `CACHE_TTL_SECONDS` | No | `60` | Response cache duration in seconds |
    | `LOG_LEVEL` | No | `info` | Logging level (`debug`, `info`, `warn`, `error`) |
    | `FORCE_HTTPS` | No | `false` | Redirect HTTP to HTTPS |
    | `API_KEY` | No | - | If set, enables API key authentication |
@@ -183,14 +181,6 @@ curl "http://localhost:8080/cherkasyoblenergo/api/blackout-schedule?option=lates
 - Response headers:
   - `X-RateLimit-Limit` - Maximum requests allowed
   - `X-RateLimit-Remaining` - Remaining requests in current window
-
-### Caching
-
-- Responses are cached for 60 seconds by default
-- Configurable via `CACHE_TTL_SECONDS` environment variable
-- Response headers:
-  - `Cache-Control` - Cache duration
-  - `X-Cache` - `HIT` or `MISS`
 
 ### Authentication (Optional)
 
