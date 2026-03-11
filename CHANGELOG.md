@@ -1,3 +1,10 @@
+# [2.6.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v2.5.0...v2.6.0) (2026-03-11)
+
+
+### Features
+
+* **schedule:** add date-based sorting for schedule records ([03f19de](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/03f19de81a67d5e84004e89a77382073f807b59c))
+
 # [2.5.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v2.4.1...v2.5.0) (2026-02-01)
 
 
