@@ -1037,3 +1037,29 @@ func TestGetSchedule_DateValues_CaseInsensitive(t *testing.T) {
 		})
 	}
 }
+
+func TestGetSchedule_EqualDateOrder(t *testing.T) {
+	db := setupTestDB()
+	now := time.Now()
+	db.Create(&models.Schedule{NewsID: 200, Title: "Same Date 1", Date: now, ScheduleDate: "2026-03-25", Col1_1: "10-12"})
+	db.Create(&models.Schedule{NewsID: 201, Title: "Same Date 2", Date: now, ScheduleDate: "2026-03-25", Col1_1: "12-14"})
+
+	app := fiber.New()
+	app.Get("/schedule", GetSchedule(db))
+	
+	req := newGetScheduleRequest(map[string]string{
+		"option": "latest_n",
+		"limit":  "2",
+	})
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+
+	bodyBytes, _ := io.ReadAll(resp.Body)
+	var responseBody []map[string]interface{}
+	json.Unmarshal(bodyBytes, &responseBody)
+
+	// Should return news_id 201 before 200 because Order is date desc, news_id desc
+	assert.Equal(t, float64(201), responseBody[0]["news_id"])
+	assert.Equal(t, float64(200), responseBody[1]["news_id"])
+}
