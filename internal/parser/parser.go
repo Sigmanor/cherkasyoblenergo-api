@@ -129,6 +129,9 @@ func FetchAndStoreNews(ctx context.Context, db *gorm.DB, newsURL string) {
 	}
 
 	sort.Slice(filteredNews, func(i, j int) bool {
+		if filteredNews[i].Date.Equal(filteredNews[j].Date) {
+			return filteredNews[i].ID < filteredNews[j].ID
+		}
 		return filteredNews[i].Date.Before(filteredNews[j].Date)
 	})
 	log.Printf("Filtered to %d relevant news items", len(filteredNews))

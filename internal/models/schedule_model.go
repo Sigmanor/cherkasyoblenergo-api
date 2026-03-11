@@ -6,7 +6,7 @@ type Schedule struct {
 	ID           uint      `gorm:"primaryKey;autoIncrement" json:"id"`
 	NewsID       int       `gorm:"uniqueIndex" json:"news_id"`
 	Title        string    `gorm:"type:text" json:"title"`
-	Date         time.Time `gorm:"not null" json:"date"`
+	Date         time.Time `gorm:"not null;index:idx_date_desc,sort:desc" json:"date"`
 	ScheduleDate string    `gorm:"column:schedule_date" json:"schedule_date"`
 	Col1_1       string    `gorm:"column:1_1" json:"1_1"`
 	Col1_2       string    `gorm:"column:1_2" json:"1_2"`
