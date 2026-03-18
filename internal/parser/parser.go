@@ -16,12 +16,24 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
+	_ "time/tzdata"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/robfig/cron/v3"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
+
+var kievLocation *time.Location
+
+func init() {
+	var err error
+	kievLocation, err = time.LoadLocation("Europe/Kiev")
+	if err != nil {
+		log.Printf("Failed to load Europe/Kiev timezone, using UTC: %v", err)
+		kievLocation = time.UTC
+	}
+}
 
 var scheduleKeywords = []string{
 	"оновлені графіки",
@@ -116,7 +128,7 @@ func FetchAndStoreNews(ctx context.Context, db *gorm.DB, newsURL string) {
 		if !hasScheduleKeywords && !hasSchedulePatterns {
 			continue
 		}
-		parsedDate, err := time.Parse("02.01.2006 15:04", news.Date)
+		parsedDate, err := time.ParseInLocation("02.01.2006 15:04", news.Date, kievLocation)
 		if err != nil {
 			continue
 		}
