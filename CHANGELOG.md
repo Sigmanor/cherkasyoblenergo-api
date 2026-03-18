@@ -1,3 +1,10 @@
+# [2.7.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v2.6.0...v2.7.0) (2026-03-18)
+
+
+### Features
+
+* **parser:** add timezone support for news date parsing ([a2b1204](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/a2b1204e738340285ff424c35f8ad241e0815226))
+
 # [2.6.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v2.5.0...v2.6.0) (2026-03-11)
 
 
