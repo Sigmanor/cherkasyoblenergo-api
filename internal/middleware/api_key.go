@@ -1,20 +1,17 @@
 package middleware
 
 import (
+	"crypto/subtle"
+
 	"github.com/gofiber/fiber/v2"
 )
 
-// APIKeyAuth creates a middleware that optionally requires an API key.
-// If apiKey is empty, all requests are allowed (public mode).
-// If apiKey is set, requests must include a matching X-API-Key header.
 func APIKeyAuth(apiKey string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// If no API key configured, allow all requests (public mode)
 		if apiKey == "" {
 			return c.Next()
 		}
 
-		// Check for API key in header
 		providedKey := c.Get("X-API-Key")
 		if providedKey == "" {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -22,8 +19,15 @@ func APIKeyAuth(apiKey string) fiber.Handler {
 			})
 		}
 
-		// Validate the API key
-		if providedKey != apiKey {
+		if len(providedKey) != len(apiKey) {
+			fakeKey := make([]byte, len(apiKey))
+			subtle.ConstantTimeCompare([]byte(providedKey), fakeKey)
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "Invalid API key",
+			})
+		}
+
+		if subtle.ConstantTimeCompare([]byte(providedKey), []byte(apiKey)) != 1 {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Invalid API key",
 			})

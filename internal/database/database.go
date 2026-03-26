@@ -3,6 +3,9 @@ package database
 import (
 	"fmt"
 	"log"
+	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -16,10 +19,44 @@ import (
 
 const defaultDBName = "cherkasyoblenergo.db"
 
-func ConnectDB(cfg config.Config) (*gorm.DB, error) {
-	dbPath := cfg.DBName
+func sanitizeDBPath(dbPath string) (string, error) {
 	if dbPath == "" {
 		dbPath = defaultDBName
+	}
+
+	cleanPath := filepath.Clean(dbPath)
+	absPath, err := filepath.Abs(cleanPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve absolute path: %w", err)
+	}
+
+	decodedPath, err := url.PathUnescape(absPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to decode path: %w", err)
+	}
+
+	if strings.Contains(decodedPath, "..") {
+		return "", fmt.Errorf("invalid database path: path traversal detected")
+	}
+
+	allowedDir := os.Getenv("DB_ALLOWED_DIR")
+	if allowedDir != "" {
+		absAllowedDir, err := filepath.Abs(allowedDir)
+		if err != nil {
+			return "", fmt.Errorf("failed to resolve allowed directory: %w", err)
+		}
+		if !strings.HasPrefix(absPath, absAllowedDir+string(filepath.Separator)) {
+			return "", fmt.Errorf("database path outside allowed directory")
+		}
+	}
+
+	return absPath, nil
+}
+
+func ConnectDB(cfg config.Config) (*gorm.DB, error) {
+	dbPath, err := sanitizeDBPath(cfg.DBName)
+	if err != nil {
+		return nil, fmt.Errorf("database path validation failed: %w", err)
 	}
 
 	dsn := fmt.Sprintf("%s?_journal_mode=WAL&_busy_timeout=5000&_loc=Local", dbPath)

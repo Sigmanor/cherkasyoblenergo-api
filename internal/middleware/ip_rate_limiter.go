@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"log"
-	"sync"
+	"strings"
 	"time"
 
 	"cherkasyoblenergo-api/internal/models"
@@ -17,7 +17,6 @@ type IPRateLimiter struct {
 	windowDuration  time.Duration
 	cleanupInterval time.Duration
 	stopChan        chan struct{}
-	mu              sync.RWMutex
 }
 
 func NewIPRateLimiter(db *gorm.DB, maxRequests int) *IPRateLimiter {
@@ -72,46 +71,56 @@ func (rl *IPRateLimiter) Middleware() fiber.Handler {
 		now := time.Now()
 		windowStart := now.Truncate(rl.windowDuration)
 
-		rl.mu.Lock()
+		var currentCount int
 
-		var entry models.IPRateLimit
-		err := rl.db.Where("ip = ?", ip).First(&entry).Error
+		maxRetries := 3
+		var err error
+		for attempt := 0; attempt < maxRetries; attempt++ {
+			err = rl.db.Transaction(func(tx *gorm.DB) error {
+				var entry models.IPRateLimit
+				result := tx.Where("ip = ?", ip).First(&entry)
 
-		if err == gorm.ErrRecordNotFound {
-			entry = models.IPRateLimit{
-				IP:           ip,
-				RequestCount: 1,
-				WindowStart:  windowStart,
+				if result.Error == gorm.ErrRecordNotFound {
+					entry = models.IPRateLimit{
+						IP:           ip,
+						RequestCount: 1,
+						WindowStart:  windowStart,
+					}
+					if err := tx.Create(&entry).Error; err != nil {
+						return err
+					}
+					currentCount = 1
+					return nil
+				}
+
+				if result.Error != nil {
+					return result.Error
+				}
+
+				if entry.WindowStart.Before(windowStart) {
+					entry.WindowStart = windowStart
+					entry.RequestCount = 1
+				} else {
+					entry.RequestCount++
+				}
+
+				currentCount = entry.RequestCount
+
+				return tx.Save(&entry).Error
+			})
+
+			if err == nil || !strings.Contains(err.Error(), "database is locked") {
+				break
 			}
-			if err := rl.db.Create(&entry).Error; err != nil {
-				rl.mu.Unlock()
-				log.Printf("Error creating rate limit entry: %v", err)
-				return c.Next()
-			}
-			rl.mu.Unlock()
-
-			c.Set("X-RateLimit-Limit", intToString(rl.maxRequests))
-			c.Set("X-RateLimit-Remaining", intToString(rl.maxRequests-1))
-			return c.Next()
+			time.Sleep(time.Millisecond * 50 * time.Duration(attempt+1))
 		}
 
 		if err != nil {
-			rl.mu.Unlock()
-			log.Printf("Error fetching rate limit entry: %v", err)
+			log.Printf("Error in rate limit transaction: %v", err)
 			return c.Next()
 		}
 
-		if entry.WindowStart.Before(windowStart) {
-			entry.RequestCount = 1
-			entry.WindowStart = windowStart
-		} else {
-			entry.RequestCount++
-		}
-
-		if entry.RequestCount > rl.maxRequests {
-			rl.db.Save(&entry)
-			rl.mu.Unlock()
-
+		if currentCount > rl.maxRequests {
 			c.Set("X-RateLimit-Limit", intToString(rl.maxRequests))
 			c.Set("X-RateLimit-Remaining", "0")
 			c.Set("Retry-After", "60")
@@ -121,10 +130,7 @@ func (rl *IPRateLimiter) Middleware() fiber.Handler {
 			})
 		}
 
-		rl.db.Save(&entry)
-		rl.mu.Unlock()
-
-		remaining := rl.maxRequests - entry.RequestCount
+		remaining := rl.maxRequests - currentCount
 		if remaining < 0 {
 			remaining = 0
 		}

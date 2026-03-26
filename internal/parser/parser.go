@@ -6,9 +6,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"sort"
@@ -26,12 +29,127 @@ import (
 
 var kievLocation *time.Location
 
+var allowedDomains = []string{
+	"cherkasyoblenergo.com",
+	"gita.cherkasyoblenergo.com",
+}
+
+var privateIPBlocks = []string{
+	"10.0.0.0/8",
+	"172.16.0.0/12",
+	"192.168.0.0/16",
+	"127.0.0.0/8",
+	"169.254.0.0/16",
+	"::1/128",
+	"fc00::/7",
+	"fe80::/10",
+}
+
 func init() {
 	var err error
 	kievLocation, err = time.LoadLocation("Europe/Kiev")
 	if err != nil {
 		log.Printf("Failed to load Europe/Kiev timezone, using UTC: %v", err)
 		kievLocation = time.UTC
+	}
+}
+
+func isPrivateIP(ip net.IP) bool {
+	if ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() {
+		return true
+	}
+
+	for _, cidr := range privateIPBlocks {
+		_, block, err := net.ParseCIDR(cidr)
+		if err != nil {
+			continue
+		}
+		if block.Contains(ip) {
+			return true
+		}
+	}
+	return false
+}
+
+func ValidateNewsURL(rawURL string) error {
+	if rawURL == "" {
+		return errors.New("URL cannot be empty")
+	}
+
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil {
+		return fmt.Errorf("invalid URL format: %w", err)
+	}
+
+	if parsedURL.Scheme != "https" {
+		return errors.New("only HTTPS URLs are allowed")
+	}
+
+	host := parsedURL.Hostname()
+	if host == "" {
+		return errors.New("URL must have a hostname")
+	}
+
+	ips, err := net.LookupIP(host)
+	if err != nil {
+		return fmt.Errorf("failed to resolve hostname: %w", err)
+	}
+
+	for _, ip := range ips {
+		if isPrivateIP(ip) {
+			return errors.New("private IP addresses are not allowed")
+		}
+	}
+
+	allowed := false
+	for _, domain := range allowedDomains {
+		if host == domain || strings.HasSuffix(host, "."+domain) {
+			allowed = true
+			break
+		}
+	}
+	if !allowed {
+		return errors.New("domain is not in the allowlist")
+	}
+
+	return nil
+}
+
+func createSecureHTTPClient() *http.Client {
+	dialer := &net.Dialer{
+		Timeout:   30 * time.Second,
+		KeepAlive: 30 * time.Second,
+	}
+
+	transport := &http.Transport{
+		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			host, _, err := net.SplitHostPort(addr)
+			if err != nil {
+				return nil, fmt.Errorf("invalid address: %w", err)
+			}
+
+			ips, err := net.LookupIP(host)
+			if err != nil {
+				return nil, fmt.Errorf("failed to resolve hostname during dial: %w", err)
+			}
+
+			for _, ip := range ips {
+				if isPrivateIP(ip) {
+					return nil, fmt.Errorf("private IP addresses are not allowed during connection")
+				}
+			}
+
+			return dialer.DialContext(ctx, network, addr)
+		},
+		MaxIdleConns:          10,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
+
+	return &http.Client{
+		Timeout:   30 * time.Second,
+		Transport: transport,
 	}
 }
 
@@ -91,6 +209,11 @@ func FetchAndStoreNews(ctx context.Context, db *gorm.DB, newsURL string) {
 	}
 	defer atomic.StoreInt32(&isParsing, 0)
 
+	if err := ValidateNewsURL(newsURL); err != nil {
+		log.Printf("URL validation failed: %v", err)
+		return
+	}
+
 	log.Println("Starting news parsing")
 
 	req, err := http.NewRequestWithContext(ctx, "GET", newsURL, nil)
@@ -99,7 +222,7 @@ func FetchAndStoreNews(ctx context.Context, db *gorm.DB, newsURL string) {
 		return
 	}
 
-	client := &http.Client{Timeout: 30 * time.Second}
+	client := createSecureHTTPClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("Failed to fetch data: %v", err)
