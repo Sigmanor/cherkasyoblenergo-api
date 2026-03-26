@@ -1,3 +1,10 @@
+## [2.7.1](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v2.7.0...v2.7.1) (2026-03-26)
+
+
+### Bug Fixes
+
+* add multiple security improvements ([ab6efc7](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/ab6efc78b8aee7fbf46afe3a242576e818629091))
+
 # [2.7.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v2.6.0...v2.7.0) (2026-03-18)
 
 
