@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 	"unicode"
+	"unicode/utf8"
 )
 
 type tokenType int
@@ -27,14 +28,14 @@ func ExtractScheduleDateFromTitle(title string) string {
 	if !ok {
 		return ""
 	}
-	
+
 	now := time.Now()
 	year := now.Year()
-	
+
 	if month > int(now.Month()) {
 		year--
 	}
-	
+
 	return fmt.Sprintf("%d-%02d-%02d", year, month, day)
 }
 
@@ -253,7 +254,12 @@ func extractDayAndMonth(title string) (day int, month int, ok bool) {
 
 func parseUkrainianMonth(monthName string) (int, bool) {
 	monthName = strings.ToLower(strings.TrimSpace(monthName))
-	
+
+	const maxInputLength = 20
+	if utf8.RuneCountInString(monthName) > maxInputLength {
+		return 0, false
+	}
+
 	monthMap := map[string]int{
 		"січня":     1,
 		"лютого":    2,
@@ -268,16 +274,16 @@ func parseUkrainianMonth(monthName string) (int, bool) {
 		"листопада": 11,
 		"грудня":    12,
 	}
-	
+
 	if monthNum, exists := monthMap[monthName]; exists {
 		return monthNum, true
 	}
-	
+
 	const similarityThreshold = 0.8
-	
+
 	bestMatch := -1
 	bestSimilarity := 0.0
-	
+
 	for knownMonth, monthNum := range monthMap {
 		similarity := calculateSimilarity(monthName, knownMonth)
 		if similarity > bestSimilarity {
@@ -285,11 +291,11 @@ func parseUkrainianMonth(monthName string) (int, bool) {
 			bestMatch = monthNum
 		}
 	}
-	
+
 	if bestSimilarity >= similarityThreshold {
 		return bestMatch, true
 	}
-	
+
 	return 0, false
 }
 
@@ -297,14 +303,14 @@ func calculateSimilarity(s1, s2 string) float64 {
 	if s1 == s2 {
 		return 1.0
 	}
-	
+
 	distance := levenshteinDistance(s1, s2)
 	maxLen := max(len(s1), len(s2))
-	
+
 	if maxLen == 0 {
 		return 1.0
 	}
-	
+
 	return 1.0 - float64(distance)/float64(maxLen)
 }
 
@@ -312,37 +318,37 @@ func levenshteinDistance(s1, s2 string) int {
 	if s1 == s2 {
 		return 0
 	}
-	
+
 	if len(s1) == 0 {
 		return len(s2)
 	}
-	
+
 	if len(s2) == 0 {
 		return len(s1)
 	}
-	
+
 	rows := len(s1) + 1
 	cols := len(s2) + 1
 	matrix := make([][]int, rows)
-	
+
 	for i := range matrix {
 		matrix[i] = make([]int, cols)
 	}
-	
+
 	for i := 0; i < rows; i++ {
 		matrix[i][0] = i
 	}
 	for j := 0; j < cols; j++ {
 		matrix[0][j] = j
 	}
-	
+
 	for i := 1; i < rows; i++ {
 		for j := 1; j < cols; j++ {
 			cost := 1
 			if s1[i-1] == s2[j-1] {
 				cost = 0
 			}
-			
+
 			matrix[i][j] = min3(
 				matrix[i-1][j]+1,
 				matrix[i][j-1]+1,
@@ -350,7 +356,7 @@ func levenshteinDistance(s1, s2 string) int {
 			)
 		}
 	}
-	
+
 	return matrix[rows-1][cols-1]
 }
 
