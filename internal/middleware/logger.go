@@ -21,11 +21,6 @@ func Logger() fiber.Handler {
 		err := c.Next()
 		duration := time.Since(start)
 
-		apiKey := c.Get("X-API-Key")
-		if apiKey == "" {
-			apiKey = c.Query("api_key")
-		}
-
 		attrs := []any{
 			slog.String("method", c.Method()),
 			slog.String("path", c.Path()),
@@ -34,7 +29,7 @@ func Logger() fiber.Handler {
 			slog.String("ip", c.IP()),
 		}
 
-		if apiKey != "" {
+		if apiKey := c.Get("X-API-Key"); apiKey != "" {
 			attrs = append(attrs, slog.String("api_key", maskAPIKey(apiKey)))
 		}
 
