@@ -1,3 +1,10 @@
+# [2.8.0](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v2.7.1...v2.8.0) (2026-04-09)
+
+
+### Features
+
+* **parser:** enhance schedule data synchronization ([4666103](https://github.com/Sigmanor/cherkasyoblenergo-api/commit/466610311cf5f3e8725e8904aa5c8e513ff1da42))
+
 ## [2.7.1](https://github.com/Sigmanor/cherkasyoblenergo-api/compare/v2.7.0...v2.7.1) (2026-03-26)
 
 
