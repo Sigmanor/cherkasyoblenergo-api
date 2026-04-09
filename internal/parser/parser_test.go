@@ -3,10 +3,23 @@ package parser
 import (
 	"cherkasyoblenergo-api/internal/models"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
+
+func setupParserTestDB(t *testing.T) *gorm.DB {
+	t.Helper()
+
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	require.NoError(t, err)
+	require.NoError(t, db.AutoMigrate(&models.Schedule{}))
+
+	return db
+}
 
 func TestParseScheduleFromParagraphs_ToleratesExtraDotAndSpaces(t *testing.T) {
 	html := `
@@ -75,4 +88,109 @@ func TestContainsSchedulePatterns_HandlesColonFormat(t *testing.T) {
 	// New format with colon
 	assert.True(t, containsSchedulePatterns("1.1: 00:30 – 04:00"), "should match new format with colon")
 	assert.True(t, containsSchedulePatterns("<p>2.2: 06:00 – 08:00</p>"), "should match new format in HTML")
+}
+
+func TestSyncScheduleRecord_CreatesNewRecord(t *testing.T) {
+	db := setupParserTestDB(t)
+	parsedDate := time.Date(2026, time.April, 8, 19, 45, 0, 0, kievLocation)
+
+	result, err := syncScheduleRecord(db, scheduleNews{
+		ID:       4529,
+		Date:     parsedDate,
+		Title:    "Графіки погодинних вимкнень на 9 квітня",
+		HtmlBody: "<p>4.1 15:00 - 17:00</p>",
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, syncResultCreated, result)
+
+	var stored models.Schedule
+	require.NoError(t, db.Where("news_id = ?", 4529).First(&stored).Error)
+	assert.True(t, stored.Date.Equal(parsedDate))
+	assert.Equal(t, "2026-04-09", stored.ScheduleDate)
+	assert.Equal(t, "15:00 - 17:00", stored.Col4_1)
+}
+
+func TestSyncScheduleRecord_UpdatesExistingRecordWhenPayloadChanges(t *testing.T) {
+	db := setupParserTestDB(t)
+	initialDate := time.Date(2026, time.April, 8, 8, 34, 0, 0, kievLocation)
+	updatedDate := time.Date(2026, time.April, 9, 8, 42, 0, 0, kievLocation)
+
+	require.NoError(t, db.Create(&models.Schedule{
+		NewsID:       4532,
+		Title:        "Оновлений графік погодинних вимкнень на 9 квітня",
+		Date:         initialDate,
+		ScheduleDate: "2026-04-09",
+		Col4_1:       "15:00 - 17:00",
+	}).Error)
+
+	result, err := syncScheduleRecord(db, scheduleNews{
+		ID:       4532,
+		Date:     updatedDate,
+		Title:    "Оновлений графік погодинних вимкнень на 9 квітня",
+		HtmlBody: "<p>4.1 09:00 - 11:00, 15:00 - 17:00</p>",
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, syncResultUpdated, result)
+
+	var stored models.Schedule
+	require.NoError(t, db.Where("news_id = ?", 4532).First(&stored).Error)
+	assert.True(t, stored.Date.Equal(updatedDate))
+	assert.Equal(t, "09:00 - 11:00, 15:00 - 17:00", stored.Col4_1)
+}
+
+func TestSyncScheduleRecord_LeavesExistingRecordWhenNoScheduleParsed(t *testing.T) {
+	db := setupParserTestDB(t)
+	existingDate := time.Date(2026, time.April, 8, 8, 34, 0, 0, kievLocation)
+
+	require.NoError(t, db.Create(&models.Schedule{
+		NewsID:       4532,
+		Title:        "Оновлений графік погодинних вимкнень на 9 квітня",
+		Date:         existingDate,
+		ScheduleDate: "2026-04-09",
+		Col4_1:       "15:00 - 17:00",
+	}).Error)
+
+	result, err := syncScheduleRecord(db, scheduleNews{
+		ID:       4532,
+		Date:     time.Date(2026, time.April, 9, 8, 42, 0, 0, kievLocation),
+		Title:    "Оновлений графік погодинних вимкнень на 9 квітня",
+		HtmlBody: "<p>Немає графіка</p>",
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, syncResultSkippedNoData, result)
+
+	var stored models.Schedule
+	require.NoError(t, db.Where("news_id = ?", 4532).First(&stored).Error)
+	assert.True(t, stored.Date.Equal(existingDate))
+	assert.Equal(t, "15:00 - 17:00", stored.Col4_1)
+}
+
+func TestSyncScheduleRecord_DoesNotUpdateUnchangedRecord(t *testing.T) {
+	db := setupParserTestDB(t)
+	existingDate := time.Date(2026, time.April, 9, 8, 42, 0, 0, kievLocation)
+
+	require.NoError(t, db.Create(&models.Schedule{
+		NewsID:       4532,
+		Title:        "Оновлений графік погодинних вимкнень на 9 квітня",
+		Date:         existingDate,
+		ScheduleDate: "2026-04-09",
+		Col4_1:       "09:00 - 11:00, 15:00 - 17:00",
+	}).Error)
+
+	result, err := syncScheduleRecord(db, scheduleNews{
+		ID:       4532,
+		Date:     existingDate,
+		Title:    "Оновлений графік погодинних вимкнень на 9 квітня",
+		HtmlBody: "<p>4.1 09:00 - 11:00, 15:00 - 17:00</p>",
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, syncResultUnchanged, result)
+
+	var count int64
+	require.NoError(t, db.Model(&models.Schedule{}).Where("news_id = ?", 4532).Count(&count).Error)
+	assert.EqualValues(t, 1, count)
 }

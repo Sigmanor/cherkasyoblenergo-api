@@ -175,6 +175,16 @@ type scheduleNews struct {
 	HtmlBody string
 }
 
+type syncResult string
+
+const (
+	syncResultCreated       syncResult = "created"
+	syncResultUpdated       syncResult = "updated"
+	syncResultUnchanged     syncResult = "unchanged"
+	syncResultSkippedNoData syncResult = "skipped_no_schedule"
+	syncResultDatabaseError syncResult = "database_error"
+)
+
 func StartCron(db *gorm.DB, newsURL string) *cron.Cron {
 	if newsURL == "" {
 		log.Fatal("NEWS_URL environment variable is required")
@@ -271,32 +281,122 @@ func FetchAndStoreNews(ctx context.Context, db *gorm.DB, newsURL string) {
 	})
 	log.Printf("Filtered to %d relevant news items", len(filteredNews))
 
-	savedCount := 0
+	createdCount := 0
+	updatedCount := 0
+	unchangedCount := 0
+	skippedCount := 0
+	errorCount := 0
 	for _, news := range filteredNews {
-		var existing models.Schedule
-		err = db.Session(&gorm.Session{Logger: logger.Default.LogMode(logger.Silent)}).
-			Where("news_id = ?", news.ID).First(&existing).Error
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			sch := parseScheduleData(news.HtmlBody)
-			if !hasScheduleData(sch) {
-				log.Printf("Skipping news ID %d because no schedule data was parsed", news.ID)
-				continue
-			}
-			sch.NewsID = news.ID
-			sch.Title = news.Title
-			sch.Date = news.Date
-			sch.ScheduleDate = utils.ExtractScheduleDateFromTitle(news.Title)
-			if err = db.Create(&sch).Error; err != nil {
-				log.Printf("Failed to save data to DB: %v", err)
-			} else {
-				log.Printf("Successfully saved schedule data from news ID: %d", news.ID)
-				savedCount++
-			}
-		} else if err != nil {
-			log.Printf("Database error when checking news ID %d: %v", news.ID, err)
+		result, err := syncScheduleRecord(db, news)
+		if err != nil {
+			log.Printf("Failed to sync news ID %d: %v", news.ID, err)
+			errorCount++
+			continue
+		}
+
+		switch result {
+		case syncResultCreated:
+			createdCount++
+			log.Printf("Created schedule data from news ID: %d", news.ID)
+		case syncResultUpdated:
+			updatedCount++
+			log.Printf("Updated schedule data from news ID: %d", news.ID)
+		case syncResultUnchanged:
+			unchangedCount++
+			log.Printf("Schedule data unchanged for news ID: %d", news.ID)
+		case syncResultSkippedNoData:
+			skippedCount++
+			log.Printf("Skipping news ID %d because no schedule data was parsed", news.ID)
 		}
 	}
-	log.Printf("Saved %d new schedule data items", savedCount)
+	log.Printf(
+		"Sync summary: created=%d updated=%d unchanged=%d skipped=%d errors=%d",
+		createdCount,
+		updatedCount,
+		unchangedCount,
+		skippedCount,
+		errorCount,
+	)
+}
+
+func buildScheduleFromNews(news scheduleNews) (models.Schedule, bool) {
+	sch := parseScheduleData(news.HtmlBody)
+	if !hasScheduleData(sch) {
+		return models.Schedule{}, false
+	}
+
+	sch.NewsID = news.ID
+	sch.Title = news.Title
+	sch.Date = news.Date
+	sch.ScheduleDate = utils.ExtractScheduleDateFromTitle(news.Title)
+	return sch, true
+}
+
+func scheduleChanged(existing, incoming models.Schedule) bool {
+	return existing.NewsID != incoming.NewsID ||
+		existing.Title != incoming.Title ||
+		!existing.Date.Equal(incoming.Date) ||
+		existing.ScheduleDate != incoming.ScheduleDate ||
+		existing.Col1_1 != incoming.Col1_1 ||
+		existing.Col1_2 != incoming.Col1_2 ||
+		existing.Col2_1 != incoming.Col2_1 ||
+		existing.Col2_2 != incoming.Col2_2 ||
+		existing.Col3_1 != incoming.Col3_1 ||
+		existing.Col3_2 != incoming.Col3_2 ||
+		existing.Col4_1 != incoming.Col4_1 ||
+		existing.Col4_2 != incoming.Col4_2 ||
+		existing.Col5_1 != incoming.Col5_1 ||
+		existing.Col5_2 != incoming.Col5_2 ||
+		existing.Col6_1 != incoming.Col6_1 ||
+		existing.Col6_2 != incoming.Col6_2
+}
+
+func syncScheduleRecord(db *gorm.DB, news scheduleNews) (syncResult, error) {
+	incoming, ok := buildScheduleFromNews(news)
+	if !ok {
+		return syncResultSkippedNoData, nil
+	}
+
+	var existing models.Schedule
+	err := db.Session(&gorm.Session{Logger: logger.Default.LogMode(logger.Silent)}).
+		Where("news_id = ?", news.ID).First(&existing).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		if err := db.Create(&incoming).Error; err != nil {
+			return syncResultDatabaseError, err
+		}
+		return syncResultCreated, nil
+	}
+	if err != nil {
+		return syncResultDatabaseError, err
+	}
+
+	if !scheduleChanged(existing, incoming) {
+		return syncResultUnchanged, nil
+	}
+
+	updates := map[string]interface{}{
+		"title":         incoming.Title,
+		"date":          incoming.Date,
+		"schedule_date": incoming.ScheduleDate,
+		"1_1":           incoming.Col1_1,
+		"1_2":           incoming.Col1_2,
+		"2_1":           incoming.Col2_1,
+		"2_2":           incoming.Col2_2,
+		"3_1":           incoming.Col3_1,
+		"3_2":           incoming.Col3_2,
+		"4_1":           incoming.Col4_1,
+		"4_2":           incoming.Col4_2,
+		"5_1":           incoming.Col5_1,
+		"5_2":           incoming.Col5_2,
+		"6_1":           incoming.Col6_1,
+		"6_2":           incoming.Col6_2,
+	}
+
+	if err := db.Model(&existing).Updates(updates).Error; err != nil {
+		return syncResultDatabaseError, err
+	}
+
+	return syncResultUpdated, nil
 }
 
 func containsScheduleKeywords(title string) bool {
