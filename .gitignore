@@ -8,3 +8,4 @@ security.log
 *.db
 *.db-shm
 *.db-wal
+.osgrep
